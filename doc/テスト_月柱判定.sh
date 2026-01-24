@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo "=== 月柱計算の修正確認 ==="
+echo ""
+echo "テストケース: 1985年5月10日 11時30分（岐阜県）"
+echo ""
+echo "期待される結果:"
+echo "  - 補正後の時刻: 11時40分"
+echo "  - 最後に通過した節気: 立夏 (1985-05-05 22:43)"
+echo "  - 月柱: 辛巳"
+echo ""
+echo "バックエンドのログを確認してください:"
+echo "  docker-compose logs -f backend"
+echo ""
+echo "ブラウザで http://localhost:3000/calculate にアクセスし、"
+echo "以下の情報で命式を作成してください:"
+echo "  - 生年月日: 1985年5月10日"
+echo "  - 生時分: 11時30分"
+echo "  - 都道府県: 岐阜県"
+echo ""
+

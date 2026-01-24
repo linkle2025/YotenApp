@@ -1,0 +1,138 @@
+.star-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.star-modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.star-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #666;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.star-modal-close:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.star-modal-header {
+  padding: 2rem 2rem 1.5rem;
+  border-bottom: 2px solid #e0e0e0;
+  text-align: center;
+}
+
+.star-modal-header h2 {
+  font-size: 2.5rem;
+  margin: 0 0 0.5rem;
+  color: #333;
+}
+
+.star-modal-subtitle {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.star-reading {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.star-modal-body {
+  padding: 2rem;
+}
+
+.star-section {
+  margin-bottom: 2rem;
+}
+
+.star-section:last-child {
+  margin-bottom: 0;
+}
+
+.star-section h3 {
+  font-size: 1.3rem;
+  color: #007bff;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #007bff;
+}
+
+.star-text {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: #333;
+  white-space: pre-line;
+}
+
+@media (max-width: 768px) {
+  .star-modal-content {
+    max-height: 85vh;
+  }
+
+  .star-modal-header {
+    padding: 1.5rem 1.5rem 1rem;
+  }
+
+  .star-modal-header h2 {
+    font-size: 2rem;
+  }
+
+  .star-modal-body {
+    padding: 1.5rem;
+  }
+
+  .star-section h3 {
+    font-size: 1.2rem;
+  }
+
+  .star-text {
+    font-size: 0.95rem;
+  }
+}
+

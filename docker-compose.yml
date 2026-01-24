@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: yotenapp_postgres
+    environment:
+      POSTGRES_DB: yotenapp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: Asia/Tokyo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - yotenapp-network
+
+  backend:
+    build: ./backend
+    container_name: yotenapp_backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+      - /app/venv
+    ports:
+      - "8002:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=your-secret-key-here-change-in-production
+      - DATABASE_NAME=yotenapp
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - yotenapp-network
+
+  frontend:
+    build: ./frontend
+    container_name: yotenapp_frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8002/api
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - backend
+    networks:
+      - yotenapp-network
+    stdin_open: true
+    tty: true
+
+networks:
+  yotenapp-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,0 +1,20 @@
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
+from .models import UserProfile
+
+
+class UserProfileInline(admin.StackedInline):
+    model = UserProfile
+    can_delete = False
+    verbose_name_plural = 'プロフィール'
+    fields = ('role', 'display_mode')
+
+
+class UserAdmin(BaseUserAdmin):
+    inlines = (UserProfileInline,)
+
+
+# 既存のUserAdminを登録解除してから再登録
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)

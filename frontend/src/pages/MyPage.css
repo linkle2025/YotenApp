@@ -1,0 +1,188 @@
+.mypage-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+}
+
+.mypage-container h1 {
+  margin-bottom: 2rem;
+  color: #333;
+  border-bottom: 3px solid #007bff;
+  padding-bottom: 0.5rem;
+}
+
+.message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #c3e6cb;
+}
+
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #f5c6cb;
+}
+
+.mypage-section {
+  background-color: #f8f9fa;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.mypage-section h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 0.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.form-group input:disabled,
+.form-group select:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+.display-mode-select {
+  max-width: 300px;
+}
+
+.submit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.submit-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.danger-section {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+}
+
+.danger-section h2 {
+  border-bottom-color: #dc3545;
+  color: #dc3545;
+}
+
+.danger-text {
+  color: #856404;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.danger-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.danger-button:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+.danger-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* 自分の命式セクション */
+.my-fortune-section {
+  background-color: #e7f3ff;
+  border-color: #007bff;
+}
+
+.my-fortune-section h2 {
+  border-bottom-color: #007bff;
+  color: #007bff;
+}
+
+.my-fortune-description {
+  color: #495057;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.my-fortune-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+  max-width: 400px;
+}
+
+.my-fortune-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.my-fortune-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.my-fortune-warning {
+  color: #856404;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+

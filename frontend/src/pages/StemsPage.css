@@ -1,0 +1,125 @@
+.stems-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.stems-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.stems-header h1 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.stems-intro {
+  font-size: 1.1rem;
+  color: #666;
+  line-height: 1.8;
+}
+
+.stems-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto 3rem;
+}
+
+.stem-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 3px solid transparent;
+}
+
+.stem-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* 五行の色 */
+.stem-card.wood {
+  border-color: var(--color-wood);
+  background: linear-gradient(135deg, white 0%, rgba(49, 116, 49, 0.05) 100%);
+}
+
+.stem-card.fire {
+  border-color: var(--color-fire);
+  background: linear-gradient(135deg, white 0%, rgba(253, 137, 154, 0.05) 100%);
+}
+
+.stem-card.earth {
+  border-color: var(--color-earth);
+  background: linear-gradient(135deg, white 0%, rgba(162, 90, 28, 0.05) 100%);
+}
+
+.stem-card.metal {
+  border-color: var(--color-metal);
+  background: linear-gradient(135deg, white 0%, rgba(211, 211, 211, 0.1) 100%);
+}
+
+.stem-card.water {
+  border-color: var(--color-water);
+  background: linear-gradient(135deg, white 0%, rgba(15, 166, 217, 0.05) 100%);
+}
+
+.stem-card-name {
+  font-size: 3rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.stem-card-reading {
+  font-size: 1.1rem;
+  text-align: center;
+  color: #666;
+  margin-bottom: 0.3rem;
+}
+
+.stem-card-type {
+  font-size: 1rem;
+  text-align: center;
+  color: #007bff;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.stem-card-preview {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.6;
+  text-align: center;
+  min-height: 3em;
+}
+
+@media (max-width: 768px) {
+  .stems-header h1 {
+    font-size: 2rem;
+  }
+
+  .stems-intro {
+    font-size: 1rem;
+  }
+
+  .stems-grid {
+    gap: 1rem;
+  }
+
+  .stem-card {
+    padding: 1.5rem;
+  }
+
+  .stem-card-name {
+    font-size: 2.5rem;
+  }
+}
+
