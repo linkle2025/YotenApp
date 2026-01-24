@@ -39,7 +39,10 @@ python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 
 # 静的ファイルを収集（本番環境用）
-# python manage.py collectstatic --noinput
+if [ "$DEBUG" = "False" ]; then
+    echo "Collecting static files..."
+    python manage.py collectstatic --noinput
+fi
 
 echo "Starting server..."
 exec "$@"
