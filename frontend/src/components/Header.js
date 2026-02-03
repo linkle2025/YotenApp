@@ -16,7 +16,7 @@ const Header = () => {
     <header className="header">
       <div className="header-content">
         <Link to="/" className="logo">
-          陽てん塾 命式作成アプリ
+          陽てん塾 命式作成アプリ（α版）
         </Link>
         <nav className="nav">
           <Link to="/stems">十干</Link>

@@ -43,11 +43,6 @@ export const fortuneService = {
     return response.data;
   },
 
-  async shareCalculation(id) {
-    const response = await api.get(`/fortune/share/${id}/`);
-    return response.data;
-  },
-
   async calculateKimonTonkou(data) {
     const response = await api.post('/fortune/kimon-tonkou/', data);
     return response.data;

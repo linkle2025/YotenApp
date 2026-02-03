@@ -509,7 +509,6 @@
 }
 
 .favorite-button,
-.share-button,
 .back-button {
   padding: 0.75rem 1.5rem;
   border: none;
@@ -527,18 +526,12 @@
   background-color: #ffd700;
 }
 
-.share-button {
-  background-color: #28a745;
-  color: white;
-}
-
 .back-button {
   background-color: #6c757d;
   color: white;
 }
 
 .favorite-button:hover,
-.share-button:hover,
 .back-button:hover {
   opacity: 0.8;
 }

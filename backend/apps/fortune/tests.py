@@ -218,6 +218,34 @@ class FortuneHistoryTests(APITestCase):
         response = self.client.get(f'/api/fortune/history/{other_fortune.id}/')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_share_other_user_fortune_returns_404(self):
+        """他ユーザーの命式で GET /api/fortune/share/<id>/ は404（他人の鑑定は閲覧不可）"""
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='OtherPass123!'
+        )
+        other_fortune = FortuneCalculation.objects.create(
+            user=other_user,
+            name='佐藤花子',
+            birth_year=1985,
+            birth_month=5,
+            birth_day=15,
+            birth_hour=15,
+            prefecture='大阪府',
+            gender='female',
+            year_pillar_heavenly_stem='乙',
+            year_pillar_earthly_branch='丑',
+            month_pillar_heavenly_stem='辛',
+            month_pillar_earthly_branch='巳',
+            day_pillar_heavenly_stem='癸',
+            day_pillar_earthly_branch='酉',
+            hour_pillar_heavenly_stem='己',
+            hour_pillar_earthly_branch='未',
+        )
+        response = self.client.get(f'/api/fortune/share/{other_fortune.id}/')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class FortuneCalculationModelTests(TestCase):
     """FortuneCalculationモデルのテスト"""

@@ -335,16 +335,6 @@ const DetailPage = () => {
     }
   };
 
-  const handleShare = async () => {
-    try {
-      const result = await fortuneService.shareCalculation(id);
-      navigator.clipboard.writeText(result.share_url);
-      alert('共有URLをクリップボードにコピーしました。');
-    } catch (error) {
-      alert('共有URLの生成に失敗しました。');
-    }
-  };
-
   if (loading) {
     return <div className="detail-container">読み込み中...</div>;
   }
@@ -729,9 +719,6 @@ const DetailPage = () => {
             className={`favorite-button ${calculation.is_favorite ? 'active' : ''}`}
           >
             {calculation.is_favorite ? '★ お気に入り解除' : '☆ お気に入り登録'}
-          </button>
-          <button onClick={handleShare} className="share-button">
-            共有
           </button>
           <button onClick={() => navigate('/history')} className="back-button">
             履歴に戻る
