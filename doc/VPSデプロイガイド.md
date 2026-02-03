@@ -181,6 +181,10 @@ docker-compose -f docker-compose.prod.yml up -d
 # マイグレーションを実行
 docker-compose -f docker-compose.prod.yml exec backend python manage.py migrate
 
+# 十干・通変星のマスタデータを投入（/stems・/stars ページ表示に必須）
+docker-compose -f docker-compose.prod.yml exec backend python manage.py load_stems
+docker-compose -f docker-compose.prod.yml exec backend python manage.py load_stars
+
 # 静的ファイルを収集
 docker-compose -f docker-compose.prod.yml exec backend python manage.py collectstatic --noinput
 ```
@@ -315,6 +319,15 @@ sudo netstat -tulpn | grep :3001
 
 # 必要に応じてポートを変更
 # docker-compose.prod.yml を編集
+```
+
+### 9.5 十干・通変星が表示されない（/stems・/stars が空）
+
+本番DBにマスタデータが入っていないと、十干・通変星のカードが表示されません。以下を実行してマスタを投入してください。
+
+```bash
+docker-compose -f docker-compose.prod.yml exec backend python manage.py load_stems
+docker-compose -f docker-compose.prod.yml exec backend python manage.py load_stars
 ```
 
 ## 10. セキュリティチェックリスト
