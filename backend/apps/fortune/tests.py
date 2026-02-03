@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.contrib.auth.models import User
 from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
@@ -20,7 +20,7 @@ class FortuneCalculationTests(APITestCase):
         response = self.client.post('/api/token/', {
             'username': 'testuser',
             'password': 'TestPass123!',
-        })
+        }, format='json')
         self.access_token = response.data['access']
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
         
@@ -35,10 +35,10 @@ class FortuneCalculationTests(APITestCase):
             'birth_month': 1,
             'birth_day': 1,
             'birth_hour': 10,
-            'prefecture': '東京都',
+            'prefecture': '東京',
             'gender': 'male',
         }
-        response = self.client.post(self.calculate_url, data)
+        response = self.client.post(self.calculate_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('year_pillar_heavenly_stem', response.data)
         self.assertIn('year_pillar_earthly_branch', response.data)
@@ -51,10 +51,10 @@ class FortuneCalculationTests(APITestCase):
             'birth_month': 1,
             'birth_day': 1,
             'birth_hour': 10,
-            'prefecture': '東京都',
+            'prefecture': '東京',
             'gender': 'male',
         }
-        response = self.client.post(self.calculate_url, data)
+        response = self.client.post(self.calculate_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(FortuneCalculation.objects.filter(user=self.user).exists())
     
@@ -66,12 +66,12 @@ class FortuneCalculationTests(APITestCase):
             'birth_month': 1,
             'birth_day': 1,
             'birth_hour': 10,
-            'prefecture': '沖縄県',
+            'prefecture': '那覇',
             'gender': 'female',
         }
-        response = self.client.post(self.calculate_url, data)
+        response = self.client.post(self.calculate_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['prefecture'], '沖縄県')
+        self.assertEqual(response.data['prefecture'], '那覇')
     
     def test_calculate_fortune_unauthorized(self):
         """未認証での計算エラー"""
@@ -81,10 +81,10 @@ class FortuneCalculationTests(APITestCase):
             'birth_month': 1,
             'birth_day': 1,
             'birth_hour': 10,
-            'prefecture': '東京都',
+            'prefecture': '東京',
             'gender': 'male',
         }
-        response = self.client.post(self.calculate_url, data)
+        response = self.client.post(self.calculate_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
     def test_calculate_fortune_invalid_date(self):
@@ -94,10 +94,10 @@ class FortuneCalculationTests(APITestCase):
             'birth_month': 13,  # 無効な月
             'birth_day': 1,
             'birth_hour': 10,
-            'prefecture': '東京都',
+            'prefecture': '東京',
             'gender': 'male',
         }
-        response = self.client.post(self.calculate_url, data)
+        response = self.client.post(self.calculate_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
     
     def test_calculate_fortune_invalid_prefecture(self):
@@ -110,8 +110,109 @@ class FortuneCalculationTests(APITestCase):
             'prefecture': '無効県',  # 無効な都道府県
             'gender': 'male',
         }
-        response = self.client.post(self.calculate_url, data)
+        response = self.client.post(self.calculate_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_calculate_fortune_birth_year_out_of_range(self):
+        """生年が1901〜2040外 → 400"""
+        data = {
+            'birth_year': 1899,
+            'birth_month': 1,
+            'birth_day': 1,
+            'birth_hour': 10,
+            'prefecture': '東京',
+            'gender': 'male',
+        }
+        response = self.client.post(self.calculate_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data['birth_year'] = 2041
+        response = self.client.post(self.calculate_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_calculate_fortune_birth_day_out_of_range(self):
+        """生日が1〜31外 → 400"""
+        data = {
+            'birth_year': 1990,
+            'birth_month': 1,
+            'birth_day': 0,
+            'birth_hour': 10,
+            'prefecture': '東京',
+            'gender': 'male',
+        }
+        response = self.client.post(self.calculate_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data['birth_day'] = 32
+        response = self.client.post(self.calculate_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_calculate_fortune_birth_hour_out_of_range(self):
+        """生時が0〜23外 → 400"""
+        data = {
+            'birth_year': 1990,
+            'birth_month': 1,
+            'birth_day': 1,
+            'birth_hour': 24,
+            'prefecture': '東京',
+            'gender': 'male',
+        }
+        response = self.client.post(self.calculate_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_calculate_fortune_birth_minute_out_of_range(self):
+        """生分が0〜59外 → 400"""
+        data = {
+            'birth_year': 1990,
+            'birth_month': 1,
+            'birth_day': 1,
+            'birth_hour': 10,
+            'birth_minute': 60,
+            'prefecture': '東京',
+            'gender': 'male',
+        }
+        response = self.client.post(self.calculate_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+@override_settings(DEBUG=False)
+class FortuneErrorResponseSecurityTests(APITestCase):
+    """DEBUG=False 時、エラーレスポンスにスタックトレースや内部パスが含まれないことを確認"""
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_401_response_no_traceback(self):
+        """認証エラー（401）のレスポンスに Traceback が含まれない"""
+        response = self.client.get('/api/fortune/history/')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        content = response.content.decode('utf-8', errors='replace')
+        self.assertNotIn('Traceback', content)
+        self.assertNotIn('File "', content)
+
+    def test_400_response_no_traceback(self):
+        """バリデーションエラー（400）のレスポンスに Traceback が含まれない"""
+        user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='TestPass123!'
+        )
+        resp = self.client.post('/api/token/', {
+            'username': 'testuser',
+            'password': 'TestPass123!',
+        }, format='json')
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {resp.data["access"]}')
+        data = {
+            'birth_year': 1990,
+            'birth_month': 13,
+            'birth_day': 1,
+            'birth_hour': 10,
+            'prefecture': '東京',
+            'gender': 'male',
+        }
+        response = self.client.post('/api/fortune/calculate/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        content = response.content.decode('utf-8', errors='replace')
+        self.assertNotIn('Traceback', content)
+        self.assertNotIn('File "', content)
 
 
 class FortuneHistoryTests(APITestCase):
@@ -128,7 +229,7 @@ class FortuneHistoryTests(APITestCase):
         response = self.client.post('/api/token/', {
             'username': 'testuser',
             'password': 'TestPass123!',
-        })
+        }, format='json')
         self.access_token = response.data['access']
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
         
@@ -303,7 +404,7 @@ class FortuneCalculationModelTests(TestCase):
             hour_pillar_heavenly_stem='丙',
             hour_pillar_earthly_branch='申',
         )
-        expected_str = f'{self.user.username} - 1990年1月1日10時'
+        expected_str = f'{self.user.username} - 1990年1月1日10時0分'
         self.assertEqual(str(fortune), expected_str)
 
 
