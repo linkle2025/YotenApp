@@ -656,8 +656,8 @@ const DetailPage = () => {
               </div>
             </div>
 
-            {/* 大運セクション */}
-            {calculation.taiun_data && calculation.taiun_data.taiun_list && (
+            {/* 大運セクション（DEBUG=True のときのみ表示） */}
+            {calculation.show_taiun_nenun && calculation.taiun_data && calculation.taiun_data.taiun_list && (
               <div className="detail-section taiun-section">
                 <h2>大運</h2>
                 <div className="taiun-info">

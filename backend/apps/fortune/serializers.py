@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.conf import settings
 from rest_framework import serializers
 from .models import FortuneCalculation
 from .calculators import calculate_fortune, CITY_TIME_OFFSETS
@@ -31,7 +32,8 @@ class FortuneCalculationSerializer(serializers.ModelSerializer):
             'five_elements_balance_data',
             'kakukyoku',
             'taiun_data',
-            'is_favorite', 'created_at', 'updated_at'
+            'is_favorite', 'created_at', 'updated_at',
+            'show_taiun_nenun',
         ]
         read_only_fields = [
             'id', 'created_at', 'updated_at',
@@ -85,6 +87,12 @@ class FortuneCalculationSerializer(serializers.ModelSerializer):
         if value not in CITY_TIME_OFFSETS:
             raise serializers.ValidationError("正しい都市を選択してください。")
         return value
+
+    show_taiun_nenun = serializers.SerializerMethodField()
+
+    def get_show_taiun_nenun(self, obj):
+        """DEBUG=True のときのみ大運・年運を表示（鑑定表ページ用）"""
+        return getattr(settings, 'DEBUG', False)
     
     def create(self, validated_data):
         # 時間不明かどうかを確認
