@@ -2,7 +2,7 @@
 from django.conf import settings
 from rest_framework import serializers
 from .models import FortuneCalculation
-from .calculators import calculate_fortune, CITY_TIME_OFFSETS
+from .calculators import calculate_fortune, CITY_TIME_OFFSETS, get_pillar_for_solar_year, get_heavenly_star
 
 
 class FortuneCalculationSerializer(serializers.ModelSerializer):
@@ -34,6 +34,7 @@ class FortuneCalculationSerializer(serializers.ModelSerializer):
             'taiun_data',
             'is_favorite', 'created_at', 'updated_at',
             'show_taiun_nenun',
+            'nenun_data',
         ]
         read_only_fields = [
             'id', 'created_at', 'updated_at',
@@ -89,11 +90,29 @@ class FortuneCalculationSerializer(serializers.ModelSerializer):
         return value
 
     show_taiun_nenun = serializers.SerializerMethodField()
+    nenun_data = serializers.SerializerMethodField()
 
     def get_show_taiun_nenun(self, obj):
         """DEBUG=True のときのみ大運・年運を表示（鑑定表ページ用）"""
         return getattr(settings, 'DEBUG', False)
-    
+
+    def get_nenun_data(self, obj):
+        """DEBUG=True のときのみ年運一覧を返す（生年から80年分）"""
+        if not getattr(settings, 'DEBUG', False):
+            return None
+        day_stem = obj.day_pillar_heavenly_stem or ''
+        nenun_list = []
+        for y in range(obj.birth_year, obj.birth_year + 81):
+            pillar = get_pillar_for_solar_year(y)
+            star = get_heavenly_star(day_stem, pillar['heavenly_stem']) if day_stem else ''
+            nenun_list.append({
+                'year': y,
+                'heavenly_stem': pillar['heavenly_stem'],
+                'earthly_branch': pillar['earthly_branch'],
+                'heavenly_stem_star': star,
+            })
+        return nenun_list
+
     def create(self, validated_data):
         # 時間不明かどうかを確認
         hour_unknown = validated_data.get('hour_unknown', False)

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fortuneService } from '../services/fortuneService';
@@ -7,6 +8,15 @@ import { starService } from '../services/starService';
 import StemModal from '../components/StemModal';
 import StarModal from '../components/StarModal';
 import './DetailPage.css';
+
+// 五行バランス図の位置ごとの解説（位置のみで決まり、五行は考慮しない）
+const POSITION_TOOLTIP_DATA = {
+  'top': { positionName: '比劫星', relation: '自分', keywords: '信念、決断力、マイペース、わがまま、頑固' },
+  'right': { positionName: '食傷星', relation: '子供', keywords: '表現（アウトプット）発想、専門技術、おしゃべり、自由' },
+  'bottom-right': { positionName: '財星', relation: '妻（男）、部下', keywords: 'お金、財産、時間、気配り、コントロール' },
+  'bottom-left': { positionName: '官星', relation: '夫（女）、目上、上司', keywords: '国、法律、ルール、役職、出世、地位、真面目、礼儀、忍耐' },
+  'left': { positionName: '印星', relation: '親、助っ人', keywords: '学問、知識、語学、技術' },
+};
 
 const DetailPage = () => {
   const { id } = useParams();
@@ -20,6 +30,16 @@ const DetailPage = () => {
   const [selectedStem, setSelectedStem] = useState(null);
   const [stars, setStars] = useState([]);
   const [selectedStar, setSelectedStar] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 767px)');
+    const handler = () => setIsMobile(mql.matches);
+    handler();
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
 
   useEffect(() => {
     loadDetail();
@@ -596,11 +616,32 @@ const DetailPage = () => {
                 return orderedElements.map((elem, index) => {
                   const stems = getStemsForElement(elem.element);
                   const branches = getBranchesForElement(elem.element);
+                  const posKey = positions[index];
+                  const tipData = POSITION_TOOLTIP_DATA[posKey];
+                  const isTooltipOpen = tooltipPosition === posKey;
+                  
+                  const handleClick = () => {
+                    setTooltipPosition(isTooltipOpen ? null : posKey);
+                  };
+                  const handleKeyDown = (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleClick();
+                    }
+                  };
                   
                   return (
                     <div 
                       key={elem.element} 
-                      className={`element-item balance-element-${positions[index]}`}
+                      className={`element-item balance-element-${posKey}`}
+                      onMouseEnter={() => setTooltipPosition(posKey)}
+                      onMouseLeave={() => setTooltipPosition(null)}
+                      onClick={handleClick}
+                      onKeyDown={handleKeyDown}
+                      role="button"
+                      tabIndex={0}
+                      aria-expanded={isTooltipOpen}
+                      aria-label={tipData ? `${tipData.positionName}の説明を${isTooltipOpen ? '閉じる' : '開く'}` : undefined}
                     >
                       {/* 上：天干 */}
                       <div className="element-stems">
@@ -622,6 +663,14 @@ const DetailPage = () => {
                       <div className="element-branches">
                         {branches.length > 0 ? branches.join('') : '　'}
                       </div>
+                      
+                      {isTooltipOpen && tipData && !isMobile && (
+                        <div className={`position-tooltip position-tooltip-${posKey}`} role="tooltip">
+                          <div className="position-tooltip-title">{tipData.positionName}</div>
+                          <div className="position-tooltip-row"><span className="position-tooltip-label">人間関係:</span> {tipData.relation}</div>
+                          <div className="position-tooltip-row"><span className="position-tooltip-label">キーワード:</span> {tipData.keywords}</div>
+                        </div>
+                      )}
                     </div>
                   );
                 });
@@ -632,16 +681,26 @@ const DetailPage = () => {
             </div>
 
             <div className="five-elements-summary">
+              {/* スマホのみ: 右下の合計点数を「格」の上に表示（左上は図内の元位置） */}
+              <div className="score-row-mobile">
+                <div className="score-row-item score-row-item-right">
+                  <div className="score-value">
+                    {(() => {
+                      const score = calculateBottomRightScore();
+                      return score % 1 === 0 ? score.toFixed(0) : score.toFixed(1);
+                    })()}
+                  </div>
+                  <div className="score-line"></div>
+                </div>
+              </div>
               <div className="summary-item">
                 <div className="summary-label">{getStrengthLabel()}</div>
                 <div className="summary-line"></div>
               </div>
-              
               <div className="summary-item">
                 <div className="summary-label">{calculation.kakukyoku || '-'}</div>
                 <div className="summary-line"></div>
               </div>
-
             </div>
             
             {/* デバッグ情報（管理者のみ） */}
@@ -700,14 +759,40 @@ const DetailPage = () => {
                     ))}
                   </div>
                 )}
-                {isAdmin() && calculation.taiun_data?.debug_info && (
-                  <div className="taiun-debug">
-                    <h3>大運計算デバッグ情報</h3>
-                    {calculation.taiun_data.debug_info.map((info, i) => (
-                      <div key={i} className="debug-line">{info}</div>
-                    ))}
-                  </div>
-                )}
+              </div>
+            )}
+
+            {/* 年運セクション（DEBUG=True のときのみ表示） */}
+            {calculation.show_taiun_nenun && calculation.nenun_data && calculation.nenun_data.length > 0 && (
+              <div className="detail-section nenun-section">
+                <h2>年運</h2>
+                <p className="nenun-intro">各年の干支（立春基準）。デバッグ用表示です。</p>
+                <div className="taiun-table-container">
+                  <table className="taiun-table nenun-table">
+                    <thead>
+                      <tr>
+                        <th>年</th>
+                        <th>天干</th>
+                        <th>地支</th>
+                        <th>通変星</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {calculation.nenun_data.map((nenun, index) => (
+                        <tr key={index}>
+                          <td>{nenun.year}</td>
+                          <td className={`element-${getHeavenlyStemElement(nenun.heavenly_stem)}`}>
+                            {nenun.heavenly_stem}
+                          </td>
+                          <td className={`element-${getEarthlyBranchElement(nenun.earthly_branch)}`}>
+                            {nenun.earthly_branch}
+                          </td>
+                          <td>{nenun.heavenly_stem_star || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
@@ -732,6 +817,47 @@ const DetailPage = () => {
       
       {selectedStar && (
         <StarModal star={selectedStar} onClose={handleCloseStarModal} />
+      )}
+
+      {/* スマホ: 吹き出しをオーバーレイで画面中央に固定表示（ポータル） */}
+      {tooltipPosition && isMobile && POSITION_TOOLTIP_DATA[tooltipPosition] && createPortal(
+        <div
+          className="tooltip-overlay-mobile"
+          onClick={() => setTooltipPosition(null)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Escape') setTooltipPosition(null); }}
+          aria-label="閉じる"
+        >
+          <div
+            className="position-tooltip position-tooltip-mobile-fixed"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tooltip-mobile-title"
+          >
+            <div id="tooltip-mobile-title" className="position-tooltip-title">
+              {POSITION_TOOLTIP_DATA[tooltipPosition].positionName}
+            </div>
+            <div className="position-tooltip-row">
+              <span className="position-tooltip-label">人間関係:</span>{' '}
+              {POSITION_TOOLTIP_DATA[tooltipPosition].relation}
+            </div>
+            <div className="position-tooltip-row">
+              <span className="position-tooltip-label">キーワード:</span>{' '}
+              {POSITION_TOOLTIP_DATA[tooltipPosition].keywords}
+            </div>
+            <button
+              type="button"
+              className="tooltip-close-button"
+              onClick={() => setTooltipPosition(null)}
+              aria-label="閉じる"
+            >
+              閉じる
+            </button>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

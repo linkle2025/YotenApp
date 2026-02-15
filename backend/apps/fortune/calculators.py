@@ -1304,6 +1304,19 @@ def calculate_taiun(birth_year, birth_month, birth_day, year_pillar_heavenly_ste
     }
 
 
+def get_pillar_for_solar_year(solar_year):
+    """
+    西暦年（立春基準の年）の干支を返す。1984年を甲子とする。
+    年運一覧の算出に使用。
+    """
+    base_year = 1984
+    offset = (solar_year - base_year) % 60
+    return {
+        'heavenly_stem': HEAVENLY_STEMS[offset % 10],
+        'earthly_branch': EARTHLY_BRANCHES[offset % 12]
+    }
+
+
 def calculate_fortune(birth_year, birth_month, birth_day, birth_hour, prefecture='東京都', birth_minute=0, hour_unknown=False, gender='male'):
     """
     四柱推命を計算

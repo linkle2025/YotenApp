@@ -308,6 +308,50 @@
   right: 4rem;
 }
 
+/* スマホ: 左上は図内の元位置のまま表示、右下のみ .score-row-mobile で「格」の上に表示 */
+@media (max-width: 767px) {
+  .five-elements-diagram {
+    padding-top: 0.5rem;
+  }
+
+  .score-display.score-top-right {
+    display: none;
+  }
+}
+
+/* スマホのみ: 右下の合計点数を「格」の上に表示（右端寄せ・PCと同じ下線） */
+.score-row-mobile {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .score-row-mobile {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .score-row-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .score-row-item .score-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+
+  .score-row-item .score-line {
+    width: 80px;
+    height: 3px;
+    background-color: #333;
+    border-top: 3px double #333;
+  }
+}
+
 .score-value {
   font-size: 1.2rem;
   font-weight: bold;
@@ -322,11 +366,265 @@
 }
 
 .element-item {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   z-index: 2;
+  cursor: pointer;
+}
+
+/* 位置別ツールチップ（吹き出し） */
+.position-tooltip {
+  position: absolute;
+  z-index: 10;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  pointer-events: none;
+  box-sizing: border-box;
+  /* スマホ: 全幅 */
+  width: calc(100vw - 2rem);
+  max-width: calc(100vw - 2rem);
+}
+
+@media (min-width: 768px) {
+  .position-tooltip {
+    /* PC: main幅の50%程度（50vw、最大約420px） */
+    width: 50vw;
+    max-width: 420px;
+    min-width: 280px;
+  }
+}
+
+/* スマホ: インライン吹き出しは使わずポータルで表示するため、矢印のみ非表示 */
+@media (max-width: 767px) {
+  .position-tooltip::before,
+  .position-tooltip::after {
+    display: none;
+  }
+}
+
+/* スマホ: オーバーレイ＋画面中央固定の吹き出し（ポータル用） */
+.tooltip-overlay-mobile {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.position-tooltip-mobile-fixed {
+  position: relative;
+  width: 100%;
+  max-width: calc(100vw - 2rem);
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #212529;
+  box-sizing: border-box;
+  writing-mode: horizontal-tb;
+}
+
+.position-tooltip-mobile-fixed .position-tooltip-title {
+  font-size: 1.15rem;
+  margin-bottom: 0.75rem;
+}
+
+.position-tooltip-mobile-fixed .position-tooltip-row {
+  margin: 0.5rem 0;
+}
+
+.tooltip-close-button {
+  display: block;
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #fff;
+  background: #2563eb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tooltip-close-button:hover,
+.tooltip-close-button:focus {
+  background: #1d4ed8;
+}
+
+.position-tooltip::before {
+  content: '';
+  position: absolute;
+  border: 8px solid transparent;
+}
+
+.position-tooltip-title {
+  font-weight: bold;
+  color: #212529;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #eee;
+}
+
+.position-tooltip-row {
+  margin: 0.35rem 0;
+  color: #495057;
+}
+
+.position-tooltip-label {
+  font-weight: 600;
+  color: #212529;
+  margin-right: 0.25rem;
+}
+
+/* 上: 吹き出しを下に表示、矢印は上向き */
+.position-tooltip-top {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+.position-tooltip-top::before {
+  top: 100%;
+  left: 50%;
+  margin-left: -8px;
+  border-top-color: white;
+  border-bottom: none;
+}
+
+.position-tooltip-top::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -9px;
+  border: 9px solid transparent;
+  border-top-color: #dee2e6;
+  border-bottom: none;
+  z-index: -1;
+}
+
+/* 右: 吹き出しを左に表示、矢印は右向き */
+.position-tooltip-right {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(8px);
+}
+
+.position-tooltip-right::before {
+  right: 100%;
+  top: 50%;
+  margin-top: -8px;
+  border-right-color: white;
+  border-left: none;
+}
+
+.position-tooltip-right::after {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  margin-top: -9px;
+  border: 9px solid transparent;
+  border-right-color: #dee2e6;
+  border-left: none;
+  z-index: -1;
+}
+
+/* 下右: 吹き出しを上に表示、矢印は下向き */
+.position-tooltip-bottom-right {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+}
+
+.position-tooltip-bottom-right::before {
+  bottom: 100%;
+  left: 50%;
+  margin-left: -8px;
+  border-bottom-color: white;
+  border-top: none;
+}
+
+.position-tooltip-bottom-right::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -9px;
+  border: 9px solid transparent;
+  border-bottom-color: #dee2e6;
+  border-top: none;
+  z-index: -1;
+}
+
+/* 下左: 吹き出しを上に表示、矢印は下向き */
+.position-tooltip-bottom-left {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+}
+
+.position-tooltip-bottom-left::before {
+  bottom: 100%;
+  left: 50%;
+  margin-left: -8px;
+  border-bottom-color: white;
+  border-top: none;
+}
+
+.position-tooltip-bottom-left::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-left: -9px;
+  border: 9px solid transparent;
+  border-bottom-color: #dee2e6;
+  border-top: none;
+  z-index: -1;
+}
+
+/* 左: 吹き出しを右に表示、矢印は左向き */
+.position-tooltip-left {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(-8px);
+}
+
+.position-tooltip-left::before {
+  left: 100%;
+  top: 50%;
+  margin-top: -8px;
+  border-left-color: white;
+  border-right: none;
+}
+
+.position-tooltip-left::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-top: -9px;
+  border: 9px solid transparent;
+  border-left-color: #dee2e6;
+  border-right: none;
+  z-index: -1;
 }
 
 /* 位置ベースのクラス（日干を基準に配置） */
@@ -482,6 +780,14 @@
   justify-content: center;
 }
 
+@media (max-width: 767px) {
+  .five-elements-summary {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+
 .summary-item {
   display: flex;
   flex-direction: column;
@@ -600,6 +906,22 @@
 
 .taiun-table td.element-water {
   background: linear-gradient(to bottom, rgba(15, 166, 217, 0.3), rgba(15, 166, 217, 0.3)) !important;
+}
+
+/* 年運セクション（DEBUG時のみ） */
+.nenun-section {
+  margin-top: 2rem;
+}
+
+.nenun-intro {
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.nenun-section .taiun-table-container {
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 /* 大運デバッグ情報 */
