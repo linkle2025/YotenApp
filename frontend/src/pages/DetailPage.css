@@ -190,7 +190,7 @@
 .stem-clickable {
   cursor: pointer;
   text-decoration: underline;
-  text-decoration-style: dotted;
+  text-decoration-style: ;
   text-decoration-color: #007bff;
   transition: all 0.2s;
 }
@@ -299,8 +299,8 @@
 }
 
 .score-top-left {
-  top: 3.5rem;
-  left: 6rem;
+  top: 1.5rem;
+  left: 1rem;
 }
 
 .score-top-right {
@@ -771,6 +771,12 @@
   transform-origin: top right;
   z-index: 1;
   pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .diagonal-line {
+    top: calc(18% + 10px);
+  }
 }
 
 .five-elements-summary {
