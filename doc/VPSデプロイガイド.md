@@ -420,6 +420,83 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-rec
 docker compose -f docker-compose.prod.yml --env-file .env.prod restart backend
 ```
 
+**コンテナはすべて Up なのに 502 が出る場合**
+
+1. **サーバー上でバックエンド・フロントに直接アクセスできるか確認**
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8000/api/
+curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3001/
+```
+
+- 両方 **200 や 301** なら、Docker は正常。Nginx の設定を確認する。
+- **000** や **Connection refused** なら、コンテナのポートやアプリの起動状況を確認。
+- **8000 が 400** ならバックエンドは稼働中（Host ヘッダー等で 400 になることがある）。本番では Nginx が Host: app.yoten.org を付けるため問題にならないことが多い。
+- **3001 が 000** ならフロントエンドが応答していない。下記「フロントエンド (3001) が 000 のとき」を実行する。
+
+2. **app.yoten.org 用の Nginx 設定があるか・プロキシ先が正しいか**
+
+```bash
+# app.yoten.org を扱う設定ファイル
+sudo grep -r "app.yoten.org" /etc/nginx/sites-enabled/
+# 8000/3001 にプロキシしているか
+sudo grep -r "127.0.0.1:8000\|127.0.0.1:3001" /etc/nginx/sites-enabled/
+```
+
+- `nginx-proxy.conf` の内容を本番では `/etc/nginx/sites-available/yotenapp` などにコピーし、`sites-enabled` から有効にしている必要がある。
+- 443 の `server` ブロックで `ssl_certificate` と `ssl_certificate_key` が**コメントアウトのまま**だと、そのブロックが有効にならない場合がある。証明書パスを設定する。
+
+3. **ブラウザで 502 を出した直後に Nginx のエラーログを確認**
+
+```bash
+# ブラウザで https://app.yoten.org にアクセスした直後に実行
+sudo tail -20 /var/log/nginx/error.log
+sudo tail -20 /var/log/nginx/yotenapp_error.log
+```
+
+- `upstream` や `proxy_pass`、`connect()` に関するメッセージで、どのアップストリームに失敗しているか分かる。
+
+4. **HTTPS 用の server が有効か確認**
+
+```bash
+sudo nginx -T 2>/dev/null | grep -A2 "server_name app.yoten.org"
+```
+
+- `listen 443 ssl` のブロックで `ssl_certificate` が設定されていないと、その server が使われず別の default が使われて 502 になることがある。証明書を設定したうえで `sudo nginx -t && sudo systemctl reload nginx` を実行する。
+
+**フロントエンド (3001) が 000 のとき**
+
+コンテナは Up だが `curl http://127.0.0.1:3001/` が 000 になる場合は、コンテナ内の Nginx が起動していないか、ポートが Listen していない可能性があります。
+
+```bash
+# フロントエンドのログ（Nginx の起動エラーがないか）
+docker compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=50 frontend
+
+# コンテナ内で Nginx が 80 を Listen しているか
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec frontend sh -c "wget -qO- http://127.0.0.1:80/ 2>/dev/null | head -3"
+
+# コンテナ内の Nginx プロセス
+docker compose -f docker-compose.prod.yml --env-file .env.prod exec frontend ps aux
+```
+
+- ログに `nginx: [emerg]` などがあれば、`frontend/nginx.conf` の文法やパスを確認する（改行コードが CRLF だとエラーになることがある。LF に統一する）。
+- 上記で問題がなければ、フロントエンドコンテナを再作成する: `docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate frontend`
+
+**ログに「react-scripts start」「Starting the development server」と出る場合**
+
+フロントエンドが**開発用イメージ**（`Dockerfile`＝npm start）で動いています。本番では**ビルド済み静的ファイルを Nginx で配信**する必要があります。開発用イメージがキャッシュで使われているため、本番用で**強制再ビルド**してください。
+
+```bash
+cd ~/YotenApp
+# 本番用 Dockerfile.prod でフロントを再ビルド（キャッシュを使わない）
+docker compose -f docker-compose.prod.yml --env-file .env.prod build --no-cache frontend
+# 起動し直し
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+```
+
+その後、コンテナ内で 80 番が Listen しているか確認:  
+`docker compose -f docker-compose.prod.yml --env-file .env.prod exec frontend wget -qO- http://127.0.0.1:80/ | head -3` で HTML が出れば Nginx で本番ビルドが配信されています。
+
 ### 9.6 十干・通変星が表示されない（/stems・/stars が空）
 
 本番DBにマスタデータが入っていないと、十干・通変星のカードが表示されません。以下を実行してマスタを投入してください。
