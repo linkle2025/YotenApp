@@ -310,6 +310,44 @@ sudo tail -f /var/log/nginx/yotenapp_error.log
 sudo tail -f /var/log/nginx/error.log
 ```
 
+**bind() to 0.0.0.0:80/443 failed (98: Address already in use)**
+
+ポート 80 または 443 を別のプロセスが使用しているため、Nginx が起動できていません。まず使用中のプロセスを確認し、必要なら停止してから Nginx を起動してください。
+
+```bash
+# 80 と 443 を使っているプロセスを確認
+sudo ss -tlnp | grep -E ':80|:443'
+# または
+sudo lsof -i :80
+sudo lsof -i :443
+```
+
+よくある原因は **Apache** です。Apache を止めて Nginx を使う場合の例です。
+
+```bash
+# Apache の状態確認
+sudo systemctl status apache2
+
+# Apache を停止し、自動起動も無効化（Nginx をリバースプロキシとして使う場合）
+sudo systemctl stop apache2
+sudo systemctl disable apache2
+
+# Nginx を起動
+sudo systemctl start nginx
+sudo systemctl enable nginx
+sudo nginx -t
+```
+
+別の Nginx が既に動いている場合は、重複した設定や古いプロセスを確認してください。
+
+```bash
+# Nginx プロセス一覧
+ps aux | grep nginx
+
+# 設定テスト後にリロード
+sudo nginx -t && sudo systemctl reload nginx
+```
+
 ### 9.4 ポートが既に使用されている
 
 ```bash
@@ -321,7 +359,68 @@ sudo netstat -tulpn | grep :3001
 # docker-compose.prod.yml を編集
 ```
 
-### 9.5 十干・通変星が表示されない（/stems・/stars が空）
+**ポート5432 (address already in use) が出た場合**
+
+本番サーバーで `docker compose up -d` のみ実行すると、開発用の `docker-compose.yml` が使われ、PostgreSQL がホストの 5432 をバインドしようとして、既存の PostgreSQL や他サービスと衝突します。**本番では必ず本番用 compose と .env.prod を使って起動してください。**
+
+```bash
+# 誤って作成されたコンテナ・ネットワークを削除（ボリュームは -v を付けない）
+docker compose down
+
+# 本番用で起動（postgres はホストに 5432 を公開しないため競合しない）
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+```
+
+### 9.5 502 Bad Gateway・ログが返ってこない
+
+**502 の原因**  
+Nginx は動いているが、アップストリーム（バックエンド 8000 またはフロント 3001）に接続できていません。コンテナが止まっているか、ポートがバインドされていない可能性があります。
+
+**ログコマンドが応答しない場合**  
+本番では **必ず本番用 compose を指定**してください。指定しないと別プロジェクトのコンテナを参照し、応答が返らないことがあります。
+
+```bash
+# 本番のログ（-f と --env-file を付ける）
+docker compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=100
+
+# 特定サービスのみ
+docker compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=100 backend
+docker compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=100 frontend
+```
+
+**502 の確認手順（本番サーバー上で順に実行）**
+
+```bash
+# 1. 本番コンテナが動いているか
+docker compose -f docker-compose.prod.yml --env-file .env.prod ps -a
+
+# 2. バックエンド・フロントにローカルで応答するか（Nginx を経由しない）
+curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8000/api/
+curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3001/
+
+# 3. ポートがリッスンしているか
+sudo ss -tlnp | grep -E '8000|3001'
+
+# 4. Nginx のエラーログ（502 の理由が書いてあることが多い）
+sudo tail -50 /var/log/nginx/error.log
+sudo tail -50 /var/log/nginx/yotenapp_error.log
+```
+
+- `ps -a` で backend / frontend が **Up** でない場合は、`logs backend` や `logs frontend` でクラッシュ原因を確認する。
+- `curl` が 000 や接続拒否のときは、コンテナが落ちているかポートが違う。
+- Nginx の error.log に `connect() failed (111: Connection refused)` とあれば、127.0.0.1:8000 または 3001 に届いていません。
+
+**対処の例**
+
+```bash
+# コンテナを再作成して起動
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate
+
+# バックエンドだけ再起動
+docker compose -f docker-compose.prod.yml --env-file .env.prod restart backend
+```
+
+### 9.6 十干・通変星が表示されない（/stems・/stars が空）
 
 本番DBにマスタデータが入っていないと、十干・通変星のカードが表示されません。以下を実行してマスタを投入してください。
 

@@ -2,7 +2,7 @@
 
 # データベースが起動するまで待機
 echo "Waiting for PostgreSQL..."
-python << END
+python3 << END
 import sys
 import time
 import psycopg2
@@ -35,13 +35,13 @@ END
 
 # マイグレーションを実行
 echo "Running migrations..."
-python manage.py makemigrations --noinput
-python manage.py migrate --noinput
+python3 manage.py makemigrations --noinput
+python3 manage.py migrate --noinput
 
 # 静的ファイルを収集（本番環境用）
 if [ "$DEBUG" = "False" ]; then
     echo "Collecting static files..."
-    python manage.py collectstatic --noinput
+    python3 manage.py collectstatic --noinput
 fi
 
 echo "Starting server..."
