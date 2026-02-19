@@ -17,6 +17,7 @@ const RegisterPage = () => {
   const [hourUnknown, setHourUnknown] = useState(false);
   const [prefecture, setPrefecture] = useState('東京');
   const [residencePrefecture, setResidencePrefecture] = useState('東京');
+  const [gender, setGender] = useState('male');
   const [displayMode, setDisplayMode] = useState('business');
   const [error, setError] = useState('');
   const { register } = useAuth();
@@ -75,6 +76,7 @@ const RegisterPage = () => {
           hourUnknown,
           prefecture,
           residencePrefecture,
+          gender,
           displayMode,
         }
       );
@@ -212,6 +214,17 @@ const RegisterPage = () => {
               />
               時間不明
             </label>
+          </div>
+          
+          <div className="form-group">
+            <label>性別</label>
+            <select
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+            >
+              <option value="male">男性</option>
+              <option value="female">女性</option>
+            </select>
           </div>
           
           <div className="form-group">

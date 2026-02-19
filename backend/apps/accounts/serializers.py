@@ -8,7 +8,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = (
-            'role', 'display_mode', 'is_active',
+            'role', 'display_mode', 'is_active', 'gender',
             'birth_year', 'birth_month', 'birth_day',
             'birth_hour', 'birth_minute', 'hour_unknown', 'prefecture',
             'residence_prefecture'
@@ -21,7 +21,7 @@ class AdminUserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = (
-            'role', 'display_mode', 'is_active',
+            'role', 'display_mode', 'is_active', 'gender',
             'birth_year', 'birth_month', 'birth_day',
             'birth_hour', 'birth_minute', 'hour_unknown', 'prefecture',
             'residence_prefecture'
@@ -45,12 +45,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     hour_unknown = serializers.BooleanField(write_only=True, required=False, default=False)
     prefecture = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True, max_length=10)
     residence_prefecture = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True, max_length=10)
+    gender = serializers.ChoiceField(choices=UserProfile.GENDER_CHOICES, default='male', write_only=True, required=False)
     
     class Meta:
         model = User
         fields = (
             'username', 'email', 'password', 'password2',
-            'display_mode', 'birth_year', 'birth_month', 'birth_day',
+            'display_mode', 'gender', 'birth_year', 'birth_month', 'birth_day',
             'birth_hour', 'birth_minute', 'hour_unknown', 'prefecture',
             'residence_prefecture'
         )
@@ -67,6 +68,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         # プロフィール情報を取得
         profile_data = {
             'display_mode': validated_data.pop('display_mode', 'business'),
+            'gender': validated_data.pop('gender', 'male'),
             'birth_year': validated_data.pop('birth_year', None),
             'birth_month': validated_data.pop('birth_month', None),
             'birth_day': validated_data.pop('birth_day', None),

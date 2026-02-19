@@ -19,6 +19,7 @@ export const authService = {
     if (profileData.prefecture !== undefined) data.prefecture = profileData.prefecture;
     if (profileData.residencePrefecture !== undefined) data.residence_prefecture = profileData.residencePrefecture;
     if (profileData.displayMode !== undefined) data.display_mode = profileData.displayMode;
+    if (profileData.gender !== undefined) data.gender = profileData.gender;
     
     const response = await api.post('/auth/register/', data);
     return response.data;

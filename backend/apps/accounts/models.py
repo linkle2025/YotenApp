@@ -14,11 +14,16 @@ class UserProfile(models.Model):
         ('business', '経営者向け'),
         ('parent', '保護者向け'),
     ]
+    GENDER_CHOICES = [
+        ('male', '男性'),
+        ('female', '女性'),
+    ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='general', verbose_name='ロール')
     display_mode = models.CharField(max_length=20, choices=DISPLAY_MODE_CHOICES, default='business', verbose_name='表示モード')
     is_active = models.BooleanField(default=True, verbose_name='有効')
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='male', null=True, blank=True, verbose_name='性別')
     
     # 生年月日・時間情報
     birth_year = models.IntegerField(null=True, blank=True, verbose_name='生年')
