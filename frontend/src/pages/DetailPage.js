@@ -363,6 +363,8 @@ const DetailPage = () => {
     return <div className="detail-container">{error || 'データが見つかりません'}</div>;
   }
 
+  const strengthLabel = getStrengthLabel();
+
   return (
     <div className="detail-container">
       <div className="detail-box">
@@ -585,7 +587,7 @@ const DetailPage = () => {
           <div className="five-elements-section">
             <div className="detail-section">
               <h2>五行バランス</h2>
-              <div className="five-elements-container">
+              <div className={`five-elements-container${strengthLabel === '身旺' ? ' strength-miou' : strengthLabel === '身弱' ? ' strength-mijaku' : ''}`}>
             <div className="five-elements-diagram">
               {/* 点数表示 */}
               <div className="score-display score-top-left">
@@ -694,7 +696,7 @@ const DetailPage = () => {
                 </div>
               </div>
               <div className="summary-item">
-                <div className="summary-label">{getStrengthLabel()}</div>
+                <div className={`summary-label${strengthLabel === '身旺' || strengthLabel === '身弱' ? ' strength-label-red' : ''}`}>{strengthLabel}</div>
                 <div className="summary-line"></div>
               </div>
               <div className="summary-item">
@@ -702,6 +704,16 @@ const DetailPage = () => {
                 <div className="summary-line"></div>
               </div>
             </div>
+            {strengthLabel === '身旺' && (
+              <div className="five-elements-explanation">
+                <p>身旺：あなた自身の五行（比劫星）と、あなたに力を与える五行（印星）が強いです。よって五行バランスをとるには食傷星、財星を強めることが吉となります。逆に比劫星、印星が巡ってくる時期は凶となります。官星はあなたの五行を強める時もあれば弱める時もあるため、中立の扱いです。</p>
+              </div>
+            )}
+            {strengthLabel === '身弱' && (
+              <div className="five-elements-explanation">
+                <p>身弱：あなた自身の五行（比劫星）と、あなたに力を与える五行（印星）が弱いです。よって五行バランスをとるには比劫星、印星を強めることが吉となります。逆に食傷星、財星が巡ってくる時期は凶となります。官星はあなたの五行を強める時もあれば弱める時もあるため、中立の扱いです。</p>
+              </div>
+            )}
             
             {/* デバッグ情報（管理者のみ） */}
             {isAdmin() && calculation.five_elements_balance_data?.debug_info && (
