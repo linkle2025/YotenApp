@@ -153,6 +153,14 @@ sudo nginx -t
 sudo systemctl restart nginx
 ```
 
+### 4.4 Django 管理画面（`/admin`）について
+
+Django の管理画面は **`/api` 配下ではなく** `https://app.yoten.org/admin/` のように **サイトルート直下**です。リポジトリの `nginx-proxy.conf` では **`/admin` と `/static` をバックエンド（`127.0.0.1:8000`）へプロキシ**しています。
+
+- 既存サーバーで nginx を手編集している場合は、同様の `location` を追加するか、本リポジトリの `nginx-proxy.conf` を再コピーして反映してください。
+- コードを `git pull` したあと `nginx-proxy.conf` を更新したなら、`sudo cp ...` で上書きし、`sudo nginx -t && sudo systemctl reload nginx` を実行します。
+- バックエンドは **WhiteNoise** で `collectstatic` 済みの静的ファイルを配信します。デプロイ後に `collectstatic` が済んでいることを確認してください（`deploy.sh` の最後で実行されます）。
+
 ## 5. アプリケーションのデプロイ
 
 ### 5.1 デプロイスクリプトの実行
@@ -227,7 +235,7 @@ docker-compose -f docker-compose.prod.yml logs -f db
 
 - フロントエンド: `https://app.yoten.org`
 - バックエンドAPI: `https://app.yoten.org/api/`
-- 管理画面: `https://app.yoten.org/api/admin/`
+- Django 管理画面: `https://app.yoten.org/admin/`（ホストの nginx で `/admin`・`/static` をバックエンドへプロキシする必要があります。`nginx-proxy.conf` を参照）
 
 ## 8. よくある操作
 
