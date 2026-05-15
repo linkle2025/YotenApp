@@ -1523,6 +1523,15 @@ KAN_NO_KAZU = {
     '己': 6, '庚': 7, '辛': 8, '壬': 9, '癸': 10
 }
 
+# 時家奇门・八門飛宮用の地支の序数（子=1 … 亥=12）
+BRANCH_FLY_NUMBER = {
+    '子': 1, '丑': 2, '寅': 3, '卯': 4, '辰': 5, '巳': 6,
+    '午': 7, '未': 8, '申': 9, '酉': 10, '戌': 11, '亥': 12,
+}
+
+# 中宮（旬首地盤干）の寄宮：坤二宮（洛書位置2）。離九宫（9）は誤り。
+KUN_PALACE_POSITION = 2
+
 # 位置から時計回りの順番（位置5を中心に時計回り）
 CLOCKWISE_ORDER = [5, 4, 9, 2, 3, 6, 1, 8, 7]
 
@@ -1845,15 +1854,17 @@ def place_tenban_kan(jiban_kan, junshu_stem, day_stem, day_branch):
     return tenban_kan, chugan, junshu_pos, debug_info
 
 
-def place_hachimon(jiban_kan, junshu_stem, day_stem, yin_yang):
+def place_hachimon(jiban_kan, junshu_stem, day_stem, yin_yang, day_branch=None, calculation_type='時盤'):
     """
     八門を配置
     
     Args:
         jiban_kan: 地盤干の配置
         junshu_stem: 旬首の天干
-        day_stem: 日柱または時柱の天干
+        day_stem: 日柱または時柱の天干（①で調べた干）
         yin_yang: 陰陽
+        day_branch: 日柱または時柱の地支（時盤で旬首が中宮のとき直使飛宮に使用）
+        calculation_type: '日盤' or '時盤'
     
     Returns:
         dict: 位置（1-9）をキー、八門を値とする辞書
@@ -1873,45 +1884,56 @@ def place_hachimon(jiban_kan, junshu_stem, day_stem, yin_yang):
     # 直使を決定（地盤干の旬首の宮の定位の八門）
     chokushi_teii = HACHIMON_TEII.get(junshu_pos)
     if not chokushi_teii or chokushi_teii == '':
-        # 中宮（位置5）の場合は、坤宮（位置9、右上）の八門を定位とする
+        # 中宮（位置5）の場合は、坤二宮（洛書位置2）の八門を定位とする
         if junshu_pos == 5:
-            chokushi_teii = HACHIMON_TEII.get(9)  # 坤宮（右上）の八門
+            chokushi_teii = HACHIMON_TEII.get(KUN_PALACE_POSITION)
             if not chokushi_teii:
-                raise ValueError(f"位置9に対応する八門の定位がありません")
+                raise ValueError(f"位置{KUN_PALACE_POSITION}に対応する八門の定位がありません")
         else:
             raise ValueError(f"位置{junshu_pos}に対応する八門の定位がありません")
     
-    # 干の数を取得
+    # 干の数（日干または時干）
     kan_no_kazu = KAN_NO_KAZU.get(day_stem, 1)
     
     # 4-2. 直使を配置する
-    # ①で調べた干の「干の数」だけ、直使の定位から飛泊の順番に数えた位置に「直使」を配置する
-    # 中宮の場合は、坤宮（位置9）の八門の定位を使用
-    if junshu_pos == 5:
-        chokushi_teii_pos = 9  # 坤宮（右上）
+    # 時盤かつ旬首地盤が中宮のとき：坎一宮の休門を起点に、時支の序数で飛泊して直使宮を求める
+    use_branch_fly = (
+        junshu_pos == 5
+        and calculation_type == '時盤'
+        and day_branch
+        and day_branch in BRANCH_FLY_NUMBER
+    )
+    if use_branch_fly:
+        chokushi_teii = HACHIMON_TEII.get(1)  # 坎宮・休門
+        chokushi_teii_pos = 1
+        fly_n = BRANCH_FLY_NUMBER[day_branch]
+        if yin_yang == '陽':
+            chokushi_pos = (chokushi_teii_pos - 1 + fly_n - 1) % 9 + 1
+        else:
+            chokushi_pos = (chokushi_teii_pos - 1 - (fly_n - 1)) % 9
+            if chokushi_pos < 0:
+                chokushi_pos += 9
+            chokushi_pos = chokushi_pos + 1
     else:
-        chokushi_teii_pos = junshu_pos  # 地盤干の旬首の位置がそのまま定位の位置
-    
-    # 飛泊の順番は数字の昇順：1→2→3→4→5→6→7→8→9
-    # 陽局：順方向、陰局：逆方向
-    # 定位から干の数だけ飛泊順で数える（定位自体を1つ目として数える）
-    if yin_yang == '陽':
-        # 順方向：定位から順に進む（例：定位3、干の数2なら 3→4、答えは4）
-        # 定位自体を1つ目として数えるので、干の数-1だけ進む
-        chokushi_pos = (chokushi_teii_pos - 1 + kan_no_kazu - 1) % 9 + 1
-    else:
-        # 逆方向：定位から逆に進む（例：定位3、干の数2なら 3→2、答えは2）
-        # 定位自体を1つ目として数えるので、干の数-1だけ戻る
-        chokushi_pos = (chokushi_teii_pos - 1 - (kan_no_kazu - 1)) % 9
-        if chokushi_pos < 0:
-            chokushi_pos = chokushi_pos + 9
-        chokushi_pos = chokushi_pos + 1
+        # ①で調べた干の「干の数」だけ、直使の定位から飛泊の順番に数えた位置に「直使」を配置する
+        if junshu_pos == 5:
+            chokushi_teii_pos = KUN_PALACE_POSITION  # 坤二寄宮
+        else:
+            chokushi_teii_pos = junshu_pos
+        
+        if yin_yang == '陽':
+            chokushi_pos = (chokushi_teii_pos - 1 + kan_no_kazu - 1) % 9 + 1
+        else:
+            chokushi_pos = (chokushi_teii_pos - 1 - (kan_no_kazu - 1)) % 9
+            if chokushi_pos < 0:
+                chokushi_pos = chokushi_pos + 9
+            chokushi_pos = chokushi_pos + 1
     
     # 直使を配置
     hachimon[chokushi_pos] = chokushi_teii
     
-    # 八門の順番（直使から時計回り）
-    hachimon_order = ['開', '休', '生', '傷', '杜', '景', '死', '驚']
+    # 八門の順番（洛書外宮を時計回り：休→生→傷→杜→景→死→驚→開）
+    hachimon_order = ['休', '生', '傷', '杜', '景', '死', '驚', '開']
     
     # 直使のインデックスを取得
     chokushi_idx = hachimon_order.index(chokushi_teii)
@@ -1928,16 +1950,18 @@ def place_hachimon(jiban_kan, junshu_stem, day_stem, yin_yang):
     
     # デバッグ情報
     debug_info = {
-        'junshu_pos': junshu_pos,  # 地盤干の旬首の位置
-        'chokushi_teii': chokushi_teii,  # 直使
-        'chokushi_teii_pos': chokushi_teii_pos,  # 直使の定位の位置
-        'day_stem': day_stem,  # ①で調べた干
-        'kan_no_kazu': kan_no_kazu,  # 干の数
-        'yin_yang': yin_yang,  # 陰陽
-        'chokushi_pos': chokushi_pos,  # 直使を配置した位置
-        'hachimon_order': hachimon_order,  # 八門の順番
-        'chokushi_idx': chokushi_idx,  # 直使のインデックス
-        'clock_order': clock_order  # 時計回りの順番
+        'junshu_pos': junshu_pos,
+        'chokushi_teii': chokushi_teii,
+        'chokushi_teii_pos': chokushi_teii_pos if not use_branch_fly else 1,
+        'day_stem': day_stem,
+        'kan_no_kazu': kan_no_kazu,
+        'branch_fly': use_branch_fly,
+        'branch_fly_number': BRANCH_FLY_NUMBER.get(day_branch) if use_branch_fly else None,
+        'yin_yang': yin_yang,
+        'chokushi_pos': chokushi_pos,
+        'hachimon_order': hachimon_order,
+        'chokushi_idx': chokushi_idx,
+        'clock_order': clock_order
     }
     
     return hachimon, debug_info
@@ -1973,12 +1997,12 @@ def place_kyusei(jiban_kan, day_stem, day_branch, junshu_stem=None):
         raise ValueError(f"地盤干に旬首{junshu_stem}が見つかりません")
     
     # 地盤干の旬首の位置の定位の九星を大直符とする
-    # 中宮（位置5）の場合は、坤宮（位置9、右上）の九星を定位とする
+    # 中宮（位置5）の場合は、坤二宮（洛書位置2）の九星を定位とする（離九宫は誤り）
     if junshu_jiban_pos == 5:
-        daichokufu_teii = KYUSEI_TEII.get(9)  # 坤宮（右上）の九星
+        daichokufu_teii = KYUSEI_TEII.get(KUN_PALACE_POSITION)
         if not daichokufu_teii:
-            raise ValueError(f"位置9に対応する九星の定位がありません")
-        debug_info['chugan_kyusei_teii_pos'] = 9  # 中宮の場合は位置9を使用
+            raise ValueError(f"位置{KUN_PALACE_POSITION}に対応する九星の定位がありません")
+        debug_info['chugan_kyusei_teii_pos'] = KUN_PALACE_POSITION
     else:
         daichokufu_teii = KYUSEI_TEII.get(junshu_jiban_pos)
         if not daichokufu_teii or daichokufu_teii == '':
@@ -2003,18 +2027,19 @@ def place_kyusei(jiban_kan, day_stem, day_branch, junshu_stem=None):
         if target_pos is None:
             raise ValueError(f"地盤干に{target_kan}が見つかりません")
     
-    # ①で調べた干支のある地盤干の宮に「（大）直符」を配置
-    kyusei[target_pos] = daichokufu_teii
+    # 用事干が中宮（位置5）のときは寄坤二宮に大直符を置き、周回の起点とする
+    placement_pos = KUN_PALACE_POSITION if target_pos == 5 else target_pos
+    kyusei[placement_pos] = daichokufu_teii
     
     # 5-3. 「（大）直符」から時計回りに順番に九星を配置する
-    # 九星の順番（大直符から時計回り）
-    kyusei_order = ['心', '蓬', '任', '冲', '輔', '英', '芮', '柱']
+    # 九星の順番（洛書外宮を時計回り：蓬→任→冲→輔→英→芮→柱→心）
+    kyusei_order = ['蓬', '任', '冲', '輔', '英', '芮', '柱', '心']
     
     # 大直符のインデックスを取得
     daichokufu_idx = kyusei_order.index(daichokufu_teii)
     
     # 時計回りの順番で配置
-    clock_order = get_clockwise_order_from_position(target_pos)
+    clock_order = get_clockwise_order_from_position(placement_pos)
     
     # 各九星を配置
     for i, pos in enumerate(clock_order):
@@ -2031,6 +2056,7 @@ def place_kyusei(jiban_kan, day_stem, day_branch, junshu_stem=None):
         'day_stem': day_stem,  # ①で調べた干
         'target_kan': target_kan,  # 使用した干（甲の場合は旬首の干）
         'target_pos': target_pos,  # ①で調べた干支のある地盤干の宮の位置
+        'placement_pos': placement_pos,  # 大直符を置いた宮（中宮寄坤時は2）
         'kyusei_order': kyusei_order,  # 九星の順番
         'daichokufu_idx': daichokufu_idx,  # 大直符のインデックス
         'clock_order': clock_order  # 時計回りの順番
@@ -2075,18 +2101,19 @@ def place_hasshin(jiban_kan, day_stem, day_branch, yin_yang, junshu_stem=None):
         if target_pos is None:
             raise ValueError(f"地盤干に{target_kan}が見つかりません")
     
-    # 6-1. ①で調べた干支がある地盤干の宮に「符」を置く
-    hasshin[target_pos] = '符'
+    # 6-1. ①で調べた干支がある地盤干の宮に「符」を置く（中宮のときは寄坤二宮）
+    placement_pos = KUN_PALACE_POSITION if target_pos == 5 else target_pos
+    hasshin[placement_pos] = '符'
     
     # 6-2. 「符」から八神の順番に配置する
     # 陽極の場合は「時計回り」に配置、陰極の場合は「反時計回り」に配置する
     if yin_yang == '陽':
         # 時計回りの順番を取得
-        order = get_clockwise_order_from_position(target_pos)
+        order = get_clockwise_order_from_position(placement_pos)
         order_type = '時計回り'
     else:
         # 反時計回りの順番を取得
-        order = get_counter_clockwise_order_from_position(target_pos)
+        order = get_counter_clockwise_order_from_position(placement_pos)
         order_type = '反時計回り'
     
     # 各八神を配置（符から順番に）
@@ -2102,6 +2129,7 @@ def place_hasshin(jiban_kan, day_stem, day_branch, yin_yang, junshu_stem=None):
         'day_stem': day_stem,  # ①で調べた干
         'target_kan': target_kan,  # 使用した干（甲の場合は旬首の干）
         'target_pos': target_pos,  # ①で調べた干支がある地盤干の宮の位置
+        'placement_pos': placement_pos,  # 符を置いた宮（中宮寄坤時は2）
         'yin_yang': yin_yang,  # 陰陽
         'hasshin_order': HASSHIN_ORDER,  # 八神の順番
         'order_type': order_type,  # 配置順（時計回り or 反時計回り）
@@ -2424,7 +2452,11 @@ def calculate_kimon_tonkou_board(day_stem, day_branch, yin_yang, kyokusu,
     junshu_tenban_pos = junshu_pos
     
     # ④八門を配置する
-    hachimon, debug_info_hachimon = place_hachimon(jiban_kan, junshu_stem, day_stem, yin_yang)
+    hachimon, debug_info_hachimon = place_hachimon(
+        jiban_kan, junshu_stem, day_stem, yin_yang,
+        day_branch=day_branch,
+        calculation_type=calculation_type,
+    )
     step4_info = {
         'hachimon': {str(k): v for k, v in sorted(hachimon.items())},
         'debug': debug_info_hachimon  # 詳細なデバッグ情報
