@@ -1,0 +1,121 @@
+.bagua-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.bagua-popup {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 0.85rem 1rem;
+  max-width: 320px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+.bagua-popup--modal {
+  width: 100%;
+  max-width: 360px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.bagua-popup--inline {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  width: min(280px, 90vw);
+  pointer-events: auto;
+}
+
+.bagua-popup--inline.bagua-popup--above {
+  bottom: calc(100% + 6px);
+}
+
+.bagua-popup--inline.bagua-popup--below {
+  top: calc(100% + 6px);
+}
+
+.bagua-popup-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #007bff;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 0.35rem;
+}
+
+.bagua-popup-list {
+  margin: 0;
+}
+
+.bagua-popup-row {
+  margin: 0 0 0.45rem;
+}
+
+.bagua-popup-row:last-child {
+  margin-bottom: 0;
+}
+
+.bagua-popup-row dt {
+  font-weight: bold;
+  color: #555;
+  font-size: 0.8rem;
+  margin-bottom: 0.15rem;
+}
+
+.bagua-popup-row dd {
+  margin: 0;
+  color: #333;
+}
+
+.bagua-popup-close {
+  display: block;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 4px;
+  background: #007bff;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.bagua-popup-close:hover {
+  background: #0056b3;
+}
+
+.board-cell-interactive {
+  cursor: help;
+}
+
+.board-cell-interactive:focus-visible {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.board-cell-hint {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  font-size: 0.65rem;
+  color: #6c757d;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .board-cell-interactive:hover {
+    filter: brightness(0.97);
+  }
+}

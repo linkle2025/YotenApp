@@ -3,6 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { fortuneService } from '../services/fortuneService';
 import { PREFECTURES } from '../utils/constants';
+import BaguaSymbolismPopup from '../components/BaguaSymbolismPopup';
+import {
+  KIMON_BAGUA_BY_POSITION,
+  BAGUA_POPUP_PLACEMENT,
+} from '../data/kimonBaguaSymbolism';
 import './KimonTonkouPage.css';
 
 /** 日柱・時柱の天干セット */
@@ -11,6 +16,15 @@ const getHighlightStems = (dayPillar, hourPillar) => {
   if (dayPillar?.heavenly_stem) stems.add(dayPillar.heavenly_stem);
   if (hourPillar?.heavenly_stem) stems.add(hourPillar.heavenly_stem);
   return stems;
+};
+
+/** 八神の表示文言（陳・雀は別名付き） */
+const getHasshinDisplay = (hasshin) => {
+  const map = {
+    陳: '陳（白虎）',
+    雀: '雀（玄武）',
+  };
+  return map[hasshin] || hasshin || '';
 };
 
 /** 八門の文字色用クラス */
@@ -449,6 +463,26 @@ const KimonTonkouPage = () => {
 
   // 作盤結果を表示するコンポーネント
   const BoardDisplay = ({ board, dayPillar, hourPillar }) => {
+    const [activeBaguaPosition, setActiveBaguaPosition] = useState(null);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+    useEffect(() => {
+      const mq = window.matchMedia('(hover: none)');
+      const update = () => setIsTouchDevice(mq.matches);
+      update();
+      mq.addEventListener('change', update);
+      return () => mq.removeEventListener('change', update);
+    }, []);
+
+    useEffect(() => {
+      if (!activeBaguaPosition) return undefined;
+      const onKeyDown = (e) => {
+        if (e.key === 'Escape') setActiveBaguaPosition(null);
+      };
+      document.addEventListener('keydown', onKeyDown);
+      return () => document.removeEventListener('keydown', onKeyDown);
+    }, [activeBaguaPosition]);
+
     if (!board || !board.palaces) {
       return null;
     }
@@ -515,11 +549,58 @@ const KimonTonkouPage = () => {
                 );
               }
 
+              const isCenter = palace.position === 5;
+              const isBaguaActive = activeBaguaPosition === palace.position;
+              const baguaData = KIMON_BAGUA_BY_POSITION[palace.position];
+
               return (
                 <div
                   key={palace.position}
-                  className={`board-cell board-cell-pos-${palace.position}`}
+                  className={[
+                    `board-cell board-cell-pos-${palace.position}`,
+                    !isCenter && 'board-cell-interactive',
+                    isBaguaActive && 'board-cell-active',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  onMouseEnter={() => {
+                    if (!isCenter && !isTouchDevice) {
+                      setActiveBaguaPosition(palace.position);
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (!isTouchDevice) {
+                      setActiveBaguaPosition(null);
+                    }
+                  }}
+                  onClick={() => {
+                    if (!isCenter && isTouchDevice) {
+                      setActiveBaguaPosition((prev) =>
+                        prev === palace.position ? null : palace.position
+                      );
+                    }
+                  }}
+                  role={!isCenter ? 'button' : undefined}
+                  tabIndex={!isCenter ? 0 : undefined}
+                  onKeyDown={(e) => {
+                    if (!isCenter && (e.key === 'Enter' || e.key === ' ')) {
+                      e.preventDefault();
+                      setActiveBaguaPosition((prev) =>
+                        prev === palace.position ? null : palace.position
+                      );
+                    }
+                  }}
+                  aria-label={
+                    !isCenter && baguaData
+                      ? `${baguaData.title}の象意を表示`
+                      : undefined
+                  }
                 >
+                  {!isCenter && (
+                    <span className="board-cell-hint" aria-hidden="true">
+                      i
+                    </span>
+                  )}
                   <div className="board-cell-content">
                     {/* 1行目: 天盤干（左）と九星（右） */}
                     <div className="board-cell-row board-cell-row-top">
@@ -545,7 +626,9 @@ const KimonTonkouPage = () => {
                     {/* 3行目: 地盤干（左）と八神（右） */}
                     <div className="board-cell-row board-cell-row-bottom">
                       {renderJibanKan(palace)}
-                      <span className="board-hasshin">{palace.hasshin || ''}</span>
+                      <span className="board-hasshin">
+                        {getHasshinDisplay(palace.hasshin)}
+                      </span>
                     </div>
                     {/* 凶格の表示 */}
                     {palace.kyokaku && palace.kyokaku.length > 0 && (
@@ -559,11 +642,28 @@ const KimonTonkouPage = () => {
                       <div className="board-score-overlay">{palace.score}点</div>
                     )}
                   </div>
+                  {!isCenter && isBaguaActive && baguaData && !isTouchDevice && (
+                    <BaguaSymbolismPopup
+                      data={baguaData}
+                      placement={BAGUA_POPUP_PLACEMENT[palace.position]}
+                      variant="inline"
+                    />
+                  )}
                 </div>
               );
             })}
           </div>
         </div>
+        {isTouchDevice && activeBaguaPosition && KIMON_BAGUA_BY_POSITION[activeBaguaPosition] && (
+          <BaguaSymbolismPopup
+            data={KIMON_BAGUA_BY_POSITION[activeBaguaPosition]}
+            variant="modal"
+            onClose={() => setActiveBaguaPosition(null)}
+          />
+        )}
+        <p className="kimon-board-usage-tags">
+          算命　測試　近期運気　事件　日課（択日）
+        </p>
         <aside className="kimon-board-legend" aria-label="八門・格局の参考">
           <p>
             休：愛情、休息、安定 　　生：財、積極性 　　開：仕事、オープン
