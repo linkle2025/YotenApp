@@ -146,11 +146,57 @@
   margin: 0.5rem 0;
 }
 
+.pillar-stem-underline {
+  color: #dc3545;
+  font-weight: bold;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
+/* 作盤グリッドの天盤干：日柱・時柱の天干のみ赤＋下線 */
+.board-tenban-kan .tenban-stem-highlight,
+.tenban-stem-highlight {
+  color: #dc3545;
+  font-weight: bold;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+
 /* 作盤結果のグリッド表示 */
 .board-container {
   margin-top: 2rem;
   display: flex;
   justify-content: center;
+}
+
+/* 作盤グリッド直下の固定解説 */
+.kimon-board-legend {
+  margin-top: 1.25rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.75;
+  color: #333;
+}
+
+.kimon-board-legend p {
+  margin: 0 0 0.65rem 0;
+}
+
+.kimon-board-legend p:last-child {
+  margin-bottom: 0;
+}
+
+.kimon-board-legend-doors {
+  color: #555;
+  letter-spacing: 0.02em;
 }
 
 .board-grid {
@@ -165,7 +211,6 @@
 }
 
 .board-cell {
-  background-color: white;
   border: 1px solid #ccc;
   min-height: 120px;
   display: flex;
@@ -173,6 +218,34 @@
   justify-content: center;
   padding: 0.5rem;
   position: relative;
+}
+
+/* 洛書九宫の背景色（4|9|2 / 3|5|7 / 8|1|6） */
+.board-cell-pos-4,
+.board-cell-pos-3 {
+  background-color: #d9f9e5; /* 左上・左 */
+}
+
+.board-cell-pos-9 {
+  background-color: #fadcdc; /* 上 */
+}
+
+.board-cell-pos-2,
+.board-cell-pos-8 {
+  background-color: #fffcdb; /* 右上・左下 */
+}
+
+.board-cell-pos-7,
+.board-cell-pos-6 {
+  background-color: #e2e2e2; /* 右・右下 */
+}
+
+.board-cell-pos-1 {
+  background-color: #d8e3ff; /* 下 */
+}
+
+.board-cell-pos-5 {
+  background-color: #ffffff; /* 中宮 */
 }
 
 .board-cell-content {
@@ -210,9 +283,9 @@
 }
 
 .board-tenban-kan {
-  font-weight: bold;
   font-size: 1.1rem;
-  color: #007bff;
+  /* 天盤干の文字色
+  color: #007bff; */
 }
 
 .board-chugan {
@@ -222,14 +295,32 @@
 }
 
 .board-kyusei {
-  font-weight: bold;
-  color: #28a745;
   margin-left: auto;
 }
 
 .board-hachimon {
   font-weight: bold;
-  color: #dc3545;
+}
+
+/* 八門の文字色 */
+.board-hachimon.hachimon-kyu {
+  color: #2563eb; /* 休：青 */
+}
+
+.board-hachimon.hachimon-do {
+  color: #c4a035; /* 生・死：黄土色 */
+}
+
+.board-hachimon.hachimon-ryoku {
+  color: #198754; /* 傷・杜：緑 */
+}
+
+.board-hachimon.hachimon-kei {
+  color: #dc3545; /* 景：赤 */
+}
+
+.board-hachimon.hachimon-kai {
+  color: #6c757d; /* 驚・開：灰 */
 }
 
 .board-jiban-kan {
@@ -238,8 +329,6 @@
 }
 
 .board-hasshin {
-  font-weight: bold;
-  color: #ffc107;
   font-size: 0.85rem;
   margin-left: auto;
 }

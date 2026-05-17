@@ -5,6 +5,86 @@ import { fortuneService } from '../services/fortuneService';
 import { PREFECTURES } from '../utils/constants';
 import './KimonTonkouPage.css';
 
+/** 日柱・時柱の天干セット */
+const getHighlightStems = (dayPillar, hourPillar) => {
+  const stems = new Set();
+  if (dayPillar?.heavenly_stem) stems.add(dayPillar.heavenly_stem);
+  if (hourPillar?.heavenly_stem) stems.add(hourPillar.heavenly_stem);
+  return stems;
+};
+
+/** 八門の文字色用クラス */
+const getHachimonColorClass = (hachimon) => {
+  const map = {
+    休: 'hachimon-kyu',
+    生: 'hachimon-do',
+    死: 'hachimon-do',
+    傷: 'hachimon-ryoku',
+    杜: 'hachimon-ryoku',
+    景: 'hachimon-kei',
+    驚: 'hachimon-kai',
+    開: 'hachimon-kai',
+  };
+  return map[hachimon] || '';
+};
+
+/** 天盤干のみ：日柱・時柱の天干と一致する字を赤色＋下線 */
+const renderTenbanKanWithHighlight = (text, highlightStems, className = '') => {
+  if (!text) return null;
+  return (
+    <span className={className}>
+      {Array.from(text).map((char, index) =>
+        char !== '(' && char !== ')' && highlightStems.has(char) ? (
+          <span key={index} className="tenban-stem-highlight">
+            {char}
+          </span>
+        ) : (
+          <span key={index}>{char}</span>
+        )
+      )}
+    </span>
+  );
+};
+
+/** 作盤結果の干支行（日柱・時柱の天干に下線・赤色） */
+const PillarsDisplay = ({ result }) => {
+  const { year_pillar, month_pillar, day_pillar, hour_pillar, yin_yang, kyokusu, gobuuji } = result;
+
+  const renderPillar = (pillar, suffix, underlineStem) => {
+    if (!pillar) return null;
+    const stem = pillar.heavenly_stem;
+    const branch = pillar.earthly_branch;
+    return (
+      <>
+        {underlineStem ? (
+          <span className="pillar-stem-underline">{stem}</span>
+        ) : (
+          stem
+        )}
+        {branch}
+        {suffix}
+      </>
+    );
+  };
+
+  return (
+    <p className="result-pillars">
+      干支：
+      {renderPillar(year_pillar, '年', false)}
+      　{renderPillar(month_pillar, '月', false)}
+      　{renderPillar(day_pillar, '日', true)}
+      {hour_pillar && (
+        <>
+          　{renderPillar(hour_pillar, '時', true)}
+        </>
+      )}
+      　{yin_yang}
+      {kyokusu}局
+      {gobuuji && <span className="gobuuji-mark">【五不遇時】</span>}
+    </p>
+  );
+};
+
 const KimonTonkouPage = () => {
   const { isAdmin, user } = useAuth();
   const navigate = useNavigate();
@@ -368,48 +448,47 @@ const KimonTonkouPage = () => {
   };
 
   // 作盤結果を表示するコンポーネント
-  const BoardDisplay = ({ board, dayPillar, yinYang, kyokusu }) => {
+  const BoardDisplay = ({ board, dayPillar, hourPillar }) => {
     if (!board || !board.palaces) {
       return null;
     }
 
+    const highlightStems = getHighlightStems(dayPillar, hourPillar);
+
     // 位置順にソート（1-9）
     const sortedPalaces = [...board.palaces].sort((a, b) => a.position - b.position);
     
-    // 旬首の地盤干を取得（地盤干が旬首の場合は括弧で囲む）
-    const getJibanKanDisplay = (palace) => {
-      if (!palace.jiban_kan) return '';
-      // 旬首の地盤干の位置と一致する場合は括弧で囲む
-      if (board.junshu_jiban_pos && palace.position === board.junshu_jiban_pos) {
-        return `(${palace.jiban_kan})`;
-      }
-      return palace.jiban_kan;
+    const renderJibanKan = (palace) => {
+      if (!palace.jiban_kan) return null;
+      const text =
+        board.junshu_jiban_pos && palace.position === board.junshu_jiban_pos
+          ? `(${palace.jiban_kan})`
+          : palace.jiban_kan;
+      return <span className="board-jiban-kan">{text}</span>;
     };
 
-    // 天盤干の旬首を取得（天盤干が旬首の場合は括弧で囲む）
-    const getTenbanKanDisplay = (palace) => {
-      if (!palace.tenban_kan) return '';
-      
-      // 天盤干がリスト形式の場合（位置5の天盤干がBの位置に横並びで配置されている場合）
+    const renderTenbanKan = (palace) => {
+      if (!palace.tenban_kan) return null;
+
       if (Array.isArray(palace.tenban_kan)) {
         const [first, second] = palace.tenban_kan;
-        let display = '';
-        if (board.junshu_tenban_pos && palace.position === board.junshu_tenban_pos) {
-          display = `(${first})`;
-        } else {
-          display = first;
-        }
-        // 2つ目の天盤干を横並びで表示
-        display += second;
-        return display;
+        const firstText =
+          board.junshu_tenban_pos && palace.position === board.junshu_tenban_pos
+            ? `(${first})`
+            : first;
+        return (
+          <span className="board-tenban-kan">
+            {renderTenbanKanWithHighlight(firstText, highlightStems)}
+            {renderTenbanKanWithHighlight(second, highlightStems)}
+          </span>
+        );
       }
-      
-      // 通常の文字列形式の場合
-      // 天盤干の旬首の位置と一致する場合は括弧で囲む
-      if (board.junshu_tenban_pos && palace.position === board.junshu_tenban_pos) {
-        return `(${palace.tenban_kan})`;
-      }
-      return palace.tenban_kan;
+
+      const text =
+        board.junshu_tenban_pos && palace.position === board.junshu_tenban_pos
+          ? `(${palace.tenban_kan})`
+          : palace.tenban_kan;
+      return renderTenbanKanWithHighlight(text, highlightStems, 'board-tenban-kan');
     };
 
     // グリッドの配置（位置順）
@@ -422,48 +501,83 @@ const KimonTonkouPage = () => {
     );
 
     return (
-      <div className="board-container">
-        <div className="board-grid">
-          {orderedPalaces.map((palace, index) => {
-            if (!palace) return <div key={index} className="board-cell"></div>;
-            
-            return (
-              <div key={palace.position} className="board-cell">
-                <div className="board-cell-content">
-                  {/* 1行目: 天盤干（左）と九星（右） */}
-                  <div className="board-cell-row board-cell-row-top">
-                    <span className="board-tenban-kan">{getTenbanKanDisplay(palace)}</span>
-                    {palace.chugan && (
-                      <span className="board-chugan">{palace.chugan}</span>
-                    )}
-                    <span className="board-kyusei">{palace.kyusei || ''}</span>
-                  </div>
-                  {/* 2行目: 八門（中央） */}
-                  <div className="board-cell-row board-cell-row-center">
-                    <span className="board-hachimon">{palace.hachimon || ''}</span>
-                  </div>
-                  {/* 3行目: 地盤干（左）と八神（右） */}
-                  <div className="board-cell-row board-cell-row-bottom">
-                    <span className="board-jiban-kan">{getJibanKanDisplay(palace)}</span>
-                    <span className="board-hasshin">{palace.hasshin || ''}</span>
-                  </div>
-                  {/* 凶格の表示 */}
-                  {palace.kyokaku && palace.kyokaku.length > 0 && (
-                    <div className="board-kyokaku">
-                      {palace.kyokaku.map((kyokaku, idx) => (
-                        <span key={idx} className="kyokaku-item">{kyokaku}</span>
-                      ))}
+      <>
+        <div className="board-container">
+          <div className="board-grid">
+            {orderedPalaces.map((palace, index) => {
+              const cellPos = palace?.position ?? gridOrder[index];
+              if (!palace) {
+                return (
+                  <div
+                    key={index}
+                    className={`board-cell board-cell-pos-${cellPos}`}
+                  />
+                );
+              }
+
+              return (
+                <div
+                  key={palace.position}
+                  className={`board-cell board-cell-pos-${palace.position}`}
+                >
+                  <div className="board-cell-content">
+                    {/* 1行目: 天盤干（左）と九星（右） */}
+                    <div className="board-cell-row board-cell-row-top">
+                      {renderTenbanKan(palace)}
+                      {palace.chugan && (
+                        <span className="board-chugan">{palace.chugan}</span>
+                      )}
+                      <span className="board-kyusei">{palace.kyusei || ''}</span>
                     </div>
-                  )}
-                  {palace.score !== undefined && palace.score !== null && (
-                    <div className="board-score-overlay">{palace.score}点</div>
-                  )}
+                    {/* 2行目: 八門（中央） */}
+                    <div className="board-cell-row board-cell-row-center">
+                      <span
+                        className={[
+                          'board-hachimon',
+                          getHachimonColorClass(palace.hachimon),
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                      >
+                        {palace.hachimon || ''}
+                      </span>
+                    </div>
+                    {/* 3行目: 地盤干（左）と八神（右） */}
+                    <div className="board-cell-row board-cell-row-bottom">
+                      {renderJibanKan(palace)}
+                      <span className="board-hasshin">{palace.hasshin || ''}</span>
+                    </div>
+                    {/* 凶格の表示 */}
+                    {palace.kyokaku && palace.kyokaku.length > 0 && (
+                      <div className="board-kyokaku">
+                        {palace.kyokaku.map((kyokaku, idx) => (
+                          <span key={idx} className="kyokaku-item">{kyokaku}</span>
+                        ))}
+                      </div>
+                    )}
+                    {palace.score !== undefined && palace.score !== null && (
+                      <div className="board-score-overlay">{palace.score}点</div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+        <aside className="kimon-board-legend" aria-label="八門・格局の参考">
+          <p>
+            休：愛情、休息、安定 　　生：財、積極性 　　開：仕事、オープン
+          </p>
+          <p>
+            傷：怪我、ギャンブル　 杜：隠れる、閉じる　 景：祝事、文書、華やか　 死：停止 　驚：トラブル、想定外
+          </p>
+          <p className="kimon-board-legend-doors">傷 杜 景 死 驚</p>
+          <p>風遁：放送・広報・宣伝活動に効果があることを実証済み</p>
+          <p>玉女守門：：人間関係、男女の和合、試験にも効果ありを確認。</p>
+          <p>勾陳＝白虎：出血、車、交通事故</p>
+          <p>朱雀＝玄武：腹黒い、嘘、騙す、口喧嘩、お金に関する悪いこと</p>
+        </aside>
+      </>
     );
   };
 
@@ -567,17 +681,13 @@ const KimonTonkouPage = () => {
                 </span>
               )}
             </p>
-            <p className="result-pillars">
-              干支：{jibanResult.pillars_str}　{jibanResult.yin_yang}{jibanResult.kyokusu}局
-              {jibanResult.gobuuji && <span className="gobuuji-mark">【五不遇時】</span>}
-            </p>
+            <PillarsDisplay result={jibanResult} />
             {jibanResult.board && (
               <>
-                <BoardDisplay 
+                <BoardDisplay
                   board={jibanResult.board}
-                  dayPillar={jibanResult.hour_pillar}
-                  yinYang={jibanResult.yin_yang}
-                  kyokusu={jibanResult.kyokusu}
+                  dayPillar={jibanResult.day_pillar}
+                  hourPillar={jibanResult.hour_pillar}
                 />
                 {jibanResult.board.debug && (
                   <DebugDisplay debug={jibanResult.board.debug} />
@@ -649,17 +759,13 @@ const KimonTonkouPage = () => {
           <div className="result-section">
             <h3>表示結果</h3>
             <p className="result-datetime">作盤日時：{nichibanResult.datetime_str}</p>
-            <p className="result-pillars">
-              干支：{nichibanResult.pillars_str}　{nichibanResult.yin_yang}{nichibanResult.kyokusu}局
-              {nichibanResult.gobuuji && <span className="gobuuji-mark">【五不遇時】</span>}
-            </p>
+            <PillarsDisplay result={nichibanResult} />
             {nichibanResult.board && (
               <>
-                <BoardDisplay 
+                <BoardDisplay
                   board={nichibanResult.board}
                   dayPillar={nichibanResult.day_pillar}
-                  yinYang={nichibanResult.yin_yang}
-                  kyokusu={nichibanResult.kyokusu}
+                  hourPillar={null}
                 />
                 {nichibanResult.board.debug && (
                   <DebugDisplay debug={nichibanResult.board.debug} />
