@@ -4,10 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { fortuneService } from '../services/fortuneService';
 import { PREFECTURES } from '../utils/constants';
 import BaguaSymbolismPopup from '../components/BaguaSymbolismPopup';
+import KimonUsageGuidePopup from '../components/KimonUsageGuidePopup';
 import {
   KIMON_BAGUA_BY_POSITION,
   BAGUA_POPUP_PLACEMENT,
 } from '../data/kimonBaguaSymbolism';
+import {
+  KIMON_USAGE_GUIDES,
+  KIMON_USAGE_TAGS,
+} from '../data/kimonUsageGuide';
 import './KimonTonkouPage.css';
 
 /** 日柱・時柱の天干セット */
@@ -464,6 +469,7 @@ const KimonTonkouPage = () => {
   // 作盤結果を表示するコンポーネント
   const BoardDisplay = ({ board, dayPillar, hourPillar }) => {
     const [activeBaguaPosition, setActiveBaguaPosition] = useState(null);
+    const [activeUsageGuideId, setActiveUsageGuideId] = useState(null);
     const [isTouchDevice, setIsTouchDevice] = useState(false);
 
     useEffect(() => {
@@ -475,13 +481,15 @@ const KimonTonkouPage = () => {
     }, []);
 
     useEffect(() => {
-      if (!activeBaguaPosition) return undefined;
+      if (!activeBaguaPosition && !activeUsageGuideId) return undefined;
       const onKeyDown = (e) => {
-        if (e.key === 'Escape') setActiveBaguaPosition(null);
+        if (e.key !== 'Escape') return;
+        if (activeUsageGuideId) setActiveUsageGuideId(null);
+        else setActiveBaguaPosition(null);
       };
       document.addEventListener('keydown', onKeyDown);
       return () => document.removeEventListener('keydown', onKeyDown);
-    }, [activeBaguaPosition]);
+    }, [activeBaguaPosition, activeUsageGuideId]);
 
     if (!board || !board.palaces) {
       return null;
@@ -662,8 +670,26 @@ const KimonTonkouPage = () => {
           />
         )}
         <p className="kimon-board-usage-tags">
-          算命　測試　近期運気　事件　日課（択日）
+          {KIMON_USAGE_TAGS.map((tag, index) => (
+            <React.Fragment key={tag.id}>
+              {index > 0 && '　'}
+              <button
+                type="button"
+                className="kimon-usage-tag-btn"
+                onClick={() => setActiveUsageGuideId(tag.id)}
+                aria-haspopup="dialog"
+              >
+                {tag.label}
+              </button>
+            </React.Fragment>
+          ))}
         </p>
+        {activeUsageGuideId && (
+          <KimonUsageGuidePopup
+            guide={KIMON_USAGE_GUIDES[activeUsageGuideId]}
+            onClose={() => setActiveUsageGuideId(null)}
+          />
+        )}
         <aside className="kimon-board-legend" aria-label="八門・格局の参考">
           <p>
             休：愛情、休息、安定 　　生：財、積極性 　　開：仕事、オープン

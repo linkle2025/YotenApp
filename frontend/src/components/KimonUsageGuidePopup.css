@@ -1,0 +1,58 @@
+.kimon-usage-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.kimon-usage-popup {
+  width: 100%;
+  max-width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 1rem 1.15rem;
+  color: #333;
+}
+
+.kimon-usage-popup-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #007bff;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 0.4rem;
+}
+
+.kimon-usage-popup-body {
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.88rem;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.kimon-usage-popup-close {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 4px;
+  background: #007bff;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.kimon-usage-popup-close:hover {
+  background: #0056b3;
+}
