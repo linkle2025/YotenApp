@@ -14,6 +14,7 @@ import StarsPage from './pages/StarsPage';
 import MyPage from './pages/MyPage';
 import AdminPage from './pages/AdminPage';
 import KimonTonkouPage from './pages/KimonTonkouPage';
+import KimonTonkouDailyPage from './pages/KimonTonkouDailyPage';
 import './App.css';
 
 function App() {
@@ -66,6 +67,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <AdminPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/kimon-tonkou/daily"
+                element={
+                  <PrivateRoute>
+                    <KimonTonkouDailyPage />
                   </PrivateRoute>
                 }
               />

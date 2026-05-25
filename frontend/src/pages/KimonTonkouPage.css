@@ -246,6 +246,44 @@
   overflow: visible;
 }
 
+.board-grid--compact {
+  max-width: 280px;
+}
+
+.board-grid--compact .board-cell {
+  min-height: 72px;
+  padding: 0.25rem;
+}
+
+.board-grid--compact .board-cell-row {
+  font-size: 0.65rem;
+}
+
+.board-grid--compact .board-tenban-kan {
+  font-size: 0.75rem;
+}
+
+.board-grid--compact .board-hachimon {
+  font-size: 0.85rem;
+}
+
+.board-grid--compact .board-cell-hint {
+  font-size: 0.55rem;
+  width: 14px;
+  height: 14px;
+  line-height: 14px;
+}
+
+.board-grid--compact .board-score-overlay {
+  font-size: 0.5rem;
+  bottom: 40px;
+  right: 36px;
+}
+
+.board-grid--compact .board-kyokaku {
+  font-size: 0.55rem;
+}
+
 .board-cell {
   border: 1px solid #ccc;
   min-height: 120px;

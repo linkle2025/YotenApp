@@ -3,106 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { fortuneService } from '../services/fortuneService';
 import { PREFECTURES } from '../utils/constants';
-import BaguaSymbolismPopup from '../components/BaguaSymbolismPopup';
-import KimonUsageGuidePopup from '../components/KimonUsageGuidePopup';
-import {
-  KIMON_BAGUA_BY_POSITION,
-  BAGUA_POPUP_PLACEMENT,
-} from '../data/kimonBaguaSymbolism';
-import {
-  KIMON_USAGE_GUIDES,
-  KIMON_USAGE_TAGS,
-} from '../data/kimonUsageGuide';
+import KimonBoardDisplay from '../components/kimon/KimonBoardDisplay';
+import KimonPillarsDisplay from '../components/kimon/KimonPillarsDisplay';
 import './KimonTonkouPage.css';
-
-/** 日柱・時柱の天干セット */
-const getHighlightStems = (dayPillar, hourPillar) => {
-  const stems = new Set();
-  if (dayPillar?.heavenly_stem) stems.add(dayPillar.heavenly_stem);
-  if (hourPillar?.heavenly_stem) stems.add(hourPillar.heavenly_stem);
-  return stems;
-};
-
-/** 八神の表示文言（陳・雀は別名付き） */
-const getHasshinDisplay = (hasshin) => {
-  const map = {
-    陳: '陳（白虎）',
-    雀: '雀（玄武）',
-  };
-  return map[hasshin] || hasshin || '';
-};
-
-/** 八門の文字色用クラス */
-const getHachimonColorClass = (hachimon) => {
-  const map = {
-    休: 'hachimon-kyu',
-    生: 'hachimon-do',
-    死: 'hachimon-do',
-    傷: 'hachimon-ryoku',
-    杜: 'hachimon-ryoku',
-    景: 'hachimon-kei',
-    驚: 'hachimon-kai',
-    開: 'hachimon-kai',
-  };
-  return map[hachimon] || '';
-};
-
-/** 天盤干のみ：日柱・時柱の天干と一致する字を赤色＋下線 */
-const renderTenbanKanWithHighlight = (text, highlightStems, className = '') => {
-  if (!text) return null;
-  return (
-    <span className={className}>
-      {Array.from(text).map((char, index) =>
-        char !== '(' && char !== ')' && highlightStems.has(char) ? (
-          <span key={index} className="tenban-stem-highlight">
-            {char}
-          </span>
-        ) : (
-          <span key={index}>{char}</span>
-        )
-      )}
-    </span>
-  );
-};
-
-/** 作盤結果の干支行（日柱・時柱の天干に下線・赤色） */
-const PillarsDisplay = ({ result }) => {
-  const { year_pillar, month_pillar, day_pillar, hour_pillar, yin_yang, kyokusu, gobuuji } = result;
-
-  const renderPillar = (pillar, suffix, underlineStem) => {
-    if (!pillar) return null;
-    const stem = pillar.heavenly_stem;
-    const branch = pillar.earthly_branch;
-    return (
-      <>
-        {underlineStem ? (
-          <span className="pillar-stem-underline">{stem}</span>
-        ) : (
-          stem
-        )}
-        {branch}
-        {suffix}
-      </>
-    );
-  };
-
-  return (
-    <p className="result-pillars">
-      干支：
-      {renderPillar(year_pillar, '年', false)}
-      　{renderPillar(month_pillar, '月', false)}
-      　{renderPillar(day_pillar, '日', true)}
-      {hour_pillar && (
-        <>
-          　{renderPillar(hour_pillar, '時', true)}
-        </>
-      )}
-      　{yin_yang}
-      {kyokusu}局
-      {gobuuji && <span className="gobuuji-mark">【五不遇時】</span>}
-    </p>
-  );
-};
 
 const KimonTonkouPage = () => {
   const { isAdmin, user } = useAuth();
@@ -226,6 +129,16 @@ const KimonTonkouPage = () => {
     } finally {
       setJibanLoading(false);
     }
+  };
+
+  const handleJibanDailyOpen = () => {
+    const params = new URLSearchParams({
+      date: jibanDate,
+      prefecture: jibanPrefecture,
+    });
+    if (jibanYinYang) params.set('yin_yang', jibanYinYang);
+    if (jibanKyokusu) params.set('kyokusu', jibanKyokusu);
+    window.open(`/kimon-tonkou/daily?${params.toString()}`, '_blank', 'noopener,noreferrer');
   };
 
   // デバッグ情報を表示するコンポーネント
@@ -466,246 +379,6 @@ const KimonTonkouPage = () => {
     );
   };
 
-  // 作盤結果を表示するコンポーネント
-  const BoardDisplay = ({ board, dayPillar, hourPillar }) => {
-    const [activeBaguaPosition, setActiveBaguaPosition] = useState(null);
-    const [activeUsageGuideId, setActiveUsageGuideId] = useState(null);
-    const [isTouchDevice, setIsTouchDevice] = useState(false);
-
-    useEffect(() => {
-      const mq = window.matchMedia('(hover: none)');
-      const update = () => setIsTouchDevice(mq.matches);
-      update();
-      mq.addEventListener('change', update);
-      return () => mq.removeEventListener('change', update);
-    }, []);
-
-    useEffect(() => {
-      if (!activeBaguaPosition && !activeUsageGuideId) return undefined;
-      const onKeyDown = (e) => {
-        if (e.key !== 'Escape') return;
-        if (activeUsageGuideId) setActiveUsageGuideId(null);
-        else setActiveBaguaPosition(null);
-      };
-      document.addEventListener('keydown', onKeyDown);
-      return () => document.removeEventListener('keydown', onKeyDown);
-    }, [activeBaguaPosition, activeUsageGuideId]);
-
-    if (!board || !board.palaces) {
-      return null;
-    }
-
-    const highlightStems = getHighlightStems(dayPillar, hourPillar);
-
-    // 位置順にソート（1-9）
-    const sortedPalaces = [...board.palaces].sort((a, b) => a.position - b.position);
-    
-    const renderJibanKan = (palace) => {
-      if (!palace.jiban_kan) return null;
-      const text =
-        board.junshu_jiban_pos && palace.position === board.junshu_jiban_pos
-          ? `(${palace.jiban_kan})`
-          : palace.jiban_kan;
-      return <span className="board-jiban-kan">{text}</span>;
-    };
-
-    const renderTenbanKan = (palace) => {
-      if (!palace.tenban_kan) return null;
-
-      if (Array.isArray(palace.tenban_kan)) {
-        const [first, second] = palace.tenban_kan;
-        const firstText =
-          board.junshu_tenban_pos && palace.position === board.junshu_tenban_pos
-            ? `(${first})`
-            : first;
-        return (
-          <span className="board-tenban-kan">
-            {renderTenbanKanWithHighlight(firstText, highlightStems)}
-            {renderTenbanKanWithHighlight(second, highlightStems)}
-          </span>
-        );
-      }
-
-      const text =
-        board.junshu_tenban_pos && palace.position === board.junshu_tenban_pos
-          ? `(${palace.tenban_kan})`
-          : palace.tenban_kan;
-      return renderTenbanKanWithHighlight(text, highlightStems, 'board-tenban-kan');
-    };
-
-    // グリッドの配置（位置順）
-    // 4 | 9 | 2
-    // 3 | 5 | 7
-    // 8 | 1 | 6
-    const gridOrder = [4, 9, 2, 3, 5, 7, 8, 1, 6];
-    const orderedPalaces = gridOrder.map(pos => 
-      sortedPalaces.find(p => p.position === pos)
-    );
-
-    return (
-      <>
-        <div className="board-container">
-          <div className="board-grid">
-            {orderedPalaces.map((palace, index) => {
-              const cellPos = palace?.position ?? gridOrder[index];
-              if (!palace) {
-                return (
-                  <div
-                    key={index}
-                    className={`board-cell board-cell-pos-${cellPos}`}
-                  />
-                );
-              }
-
-              const isCenter = palace.position === 5;
-              const isBaguaActive = activeBaguaPosition === palace.position;
-              const baguaData = KIMON_BAGUA_BY_POSITION[palace.position];
-
-              return (
-                <div
-                  key={palace.position}
-                  className={[
-                    `board-cell board-cell-pos-${palace.position}`,
-                    !isCenter && 'board-cell-interactive',
-                    isBaguaActive && 'board-cell-active',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  onMouseEnter={() => {
-                    if (!isCenter && !isTouchDevice) {
-                      setActiveBaguaPosition(palace.position);
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    if (!isTouchDevice) {
-                      setActiveBaguaPosition(null);
-                    }
-                  }}
-                  onClick={() => {
-                    if (!isCenter && isTouchDevice) {
-                      setActiveBaguaPosition((prev) =>
-                        prev === palace.position ? null : palace.position
-                      );
-                    }
-                  }}
-                  role={!isCenter ? 'button' : undefined}
-                  tabIndex={!isCenter ? 0 : undefined}
-                  onKeyDown={(e) => {
-                    if (!isCenter && (e.key === 'Enter' || e.key === ' ')) {
-                      e.preventDefault();
-                      setActiveBaguaPosition((prev) =>
-                        prev === palace.position ? null : palace.position
-                      );
-                    }
-                  }}
-                  aria-label={
-                    !isCenter && baguaData
-                      ? `${baguaData.title}の象意を表示`
-                      : undefined
-                  }
-                >
-                  {!isCenter && (
-                    <span className="board-cell-hint" aria-hidden="true">
-                      i
-                    </span>
-                  )}
-                  <div className="board-cell-content">
-                    {/* 1行目: 天盤干（左）と九星（右） */}
-                    <div className="board-cell-row board-cell-row-top">
-                      {renderTenbanKan(palace)}
-                      {palace.chugan && (
-                        <span className="board-chugan">{palace.chugan}</span>
-                      )}
-                      <span className="board-kyusei">{palace.kyusei || ''}</span>
-                    </div>
-                    {/* 2行目: 八門（中央） */}
-                    <div className="board-cell-row board-cell-row-center">
-                      <span
-                        className={[
-                          'board-hachimon',
-                          getHachimonColorClass(palace.hachimon),
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
-                      >
-                        {palace.hachimon || ''}
-                      </span>
-                    </div>
-                    {/* 3行目: 地盤干（左）と八神（右） */}
-                    <div className="board-cell-row board-cell-row-bottom">
-                      {renderJibanKan(palace)}
-                      <span className="board-hasshin">
-                        {getHasshinDisplay(palace.hasshin)}
-                      </span>
-                    </div>
-                    {/* 凶格の表示 */}
-                    {palace.kyokaku && palace.kyokaku.length > 0 && (
-                      <div className="board-kyokaku">
-                        {palace.kyokaku.map((kyokaku, idx) => (
-                          <span key={idx} className="kyokaku-item">{kyokaku}</span>
-                        ))}
-                      </div>
-                    )}
-                    {palace.score !== undefined && palace.score !== null && (
-                      <div className="board-score-overlay">{palace.score}点</div>
-                    )}
-                  </div>
-                  {!isCenter && isBaguaActive && baguaData && !isTouchDevice && (
-                    <BaguaSymbolismPopup
-                      data={baguaData}
-                      placement={BAGUA_POPUP_PLACEMENT[palace.position]}
-                      variant="inline"
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        {isTouchDevice && activeBaguaPosition && KIMON_BAGUA_BY_POSITION[activeBaguaPosition] && (
-          <BaguaSymbolismPopup
-            data={KIMON_BAGUA_BY_POSITION[activeBaguaPosition]}
-            variant="modal"
-            onClose={() => setActiveBaguaPosition(null)}
-          />
-        )}
-        <p className="kimon-board-usage-tags">
-          {KIMON_USAGE_TAGS.map((tag, index) => (
-            <React.Fragment key={tag.id}>
-              {index > 0 && '　'}
-              <button
-                type="button"
-                className="kimon-usage-tag-btn"
-                onClick={() => setActiveUsageGuideId(tag.id)}
-                aria-haspopup="dialog"
-              >
-                {tag.label}
-              </button>
-            </React.Fragment>
-          ))}
-        </p>
-        {activeUsageGuideId && (
-          <KimonUsageGuidePopup
-            guide={KIMON_USAGE_GUIDES[activeUsageGuideId]}
-            onClose={() => setActiveUsageGuideId(null)}
-          />
-        )}
-        <aside className="kimon-board-legend" aria-label="八門・格局の参考">
-          <p>
-            休：愛情、休息、安定 　　生：財、積極性 　　開：仕事、オープン
-          </p>
-          <p>
-            傷：怪我、ギャンブル　 杜：隠れる、閉じる　 景：祝事、文書、華やか　 死：停止 　驚：トラブル、想定外
-          </p>
-          <p className="kimon-board-legend-doors">傷 杜 景 死 驚</p>
-          <p>風遁：放送・広報・宣伝活動に効果があることを実証済み</p>
-          <p>玉女守門：：人間関係、男女の和合、試験にも効果ありを確認。</p>
-          <p>勾陳＝白虎：出血、車、交通事故</p>
-          <p>朱雀＝玄武：腹黒い、嘘、騙す、口喧嘩、お金に関する悪いこと</p>
-        </aside>
-      </>
-    );
-  };
 
   if (!isAdmin()) {
     return null;
@@ -790,6 +463,9 @@ const KimonTonkouPage = () => {
           <button type="submit" disabled={jibanLoading} className="submit-button">
             {jibanLoading ? '計算中...' : '送信'}
           </button>
+          <button type="button" className="submit-button" onClick={handleJibanDailyOpen}>
+            1日分の時盤を表示する
+          </button>
         </form>
 
         {jibanError && (
@@ -807,10 +483,10 @@ const KimonTonkouPage = () => {
                 </span>
               )}
             </p>
-            <PillarsDisplay result={jibanResult} />
+            <KimonPillarsDisplay result={jibanResult} />
             {jibanResult.board && (
               <>
-                <BoardDisplay
+                <KimonBoardDisplay
                   board={jibanResult.board}
                   dayPillar={jibanResult.day_pillar}
                   hourPillar={jibanResult.hour_pillar}
@@ -885,10 +561,10 @@ const KimonTonkouPage = () => {
           <div className="result-section">
             <h3>表示結果</h3>
             <p className="result-datetime">作盤日時：{nichibanResult.datetime_str}</p>
-            <PillarsDisplay result={nichibanResult} />
+            <KimonPillarsDisplay result={nichibanResult} />
             {nichibanResult.board && (
               <>
-                <BoardDisplay
+                <KimonBoardDisplay
                   board={nichibanResult.board}
                   dayPillar={nichibanResult.day_pillar}
                   hourPillar={null}
