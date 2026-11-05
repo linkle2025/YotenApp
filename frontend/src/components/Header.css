@@ -78,3 +78,28 @@
   color: #007bff;
 }
 
+
+/* スマホ幅：ロゴの下にナビを折り返して横はみ出しを防ぐ */
+@media (max-width: 767px) {
+  .header-content {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .logo {
+    font-size: 1.2rem;
+  }
+
+  .nav {
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+
+  .nav a {
+    font-size: 0.9rem;
+  }
+
+  .logout-button {
+    padding: 0.25rem 0.75rem;
+  }
+}

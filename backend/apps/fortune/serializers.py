@@ -3,6 +3,8 @@ from django.conf import settings
 from rest_framework import serializers
 from .models import FortuneCalculation
 from .calculators import calculate_fortune, CITY_TIME_OFFSETS, get_pillar_for_solar_year, get_heavenly_star
+from .skill_sheet import calculate_skill_sheet
+from apps.stems.models import Stem
 
 
 class FortuneCalculationSerializer(serializers.ModelSerializer):
@@ -35,6 +37,7 @@ class FortuneCalculationSerializer(serializers.ModelSerializer):
             'is_favorite', 'created_at', 'updated_at',
             'show_taiun_nenun',
             'nenun_data',
+            'skill_sheet',
         ]
         read_only_fields = [
             'id', 'created_at', 'updated_at',
@@ -91,6 +94,7 @@ class FortuneCalculationSerializer(serializers.ModelSerializer):
 
     show_taiun_nenun = serializers.SerializerMethodField()
     nenun_data = serializers.SerializerMethodField()
+    skill_sheet = serializers.SerializerMethodField()
 
     def get_show_taiun_nenun(self, obj):
         """DEBUG=True のときのみ大運・年運を表示（鑑定表ページ用）"""
@@ -112,6 +116,31 @@ class FortuneCalculationSerializer(serializers.ModelSerializer):
                 'heavenly_stem_star': star,
             })
         return nenun_list
+
+    def get_skill_sheet(self, obj):
+        """鑑定スキル表（表示時に算出。DBには保存しない）"""
+        scores = (obj.five_elements_balance_data or {}).get('scores')
+        day_stem = obj.day_pillar_heavenly_stem
+        if not scores or not day_stem:
+            return None
+        pillars = {
+            key: {
+                'heavenly_stem': getattr(obj, f'{key}_heavenly_stem', '') or '',
+                'earthly_branch': getattr(obj, f'{key}_earthly_branch', '') or '',
+            }
+            for key in ('year_pillar', 'month_pillar', 'day_pillar', 'hour_pillar')
+        }
+        try:
+            sheet = calculate_skill_sheet(
+                pillars, day_stem, scores, obj.kakukyoku or '', hour_unknown=obj.hour_unknown
+            )
+        except ValueError:
+            return None
+        sheet['day_stem'] = day_stem
+        sheet['day_stem_type'] = (
+            Stem.objects.filter(name=day_stem).values_list('element_type', flat=True).first() or ''
+        )
+        return sheet
 
     def create(self, validated_data):
         # 時間不明かどうかを確認

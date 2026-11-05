@@ -1,0 +1,177 @@
+.skill-sheet {
+  margin-top: 2rem;
+}
+
+.skill-sheet-subtitle {
+  margin: 0 0 0.75rem;
+  font-weight: bold;
+  color: #495057;
+}
+
+.skill-sheet-reference {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: 0.25rem 0.75rem;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  color: #856404;
+  font-size: 0.875rem;
+}
+
+.skill-sheet-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.skill-sheet-card {
+  min-width: 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+}
+
+.skill-sheet-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #555;
+}
+
+.skill-ability-list,
+.skill-job-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.skill-ability-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.skill-ability-item:last-child,
+.skill-job-item:last-child {
+  border-bottom: none;
+}
+
+.skill-ability-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.skill-name {
+  font-weight: bold;
+  color: #212529;
+}
+
+.skill-ability-score {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #007bff;
+  font-variant-numeric: tabular-nums;
+}
+
+.skill-meaning {
+  font-size: 0.8rem;
+  color: #6c757d;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.skill-bar {
+  margin-top: 0.35rem;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.skill-bar-fill {
+  height: 100%;
+  background: #007bff;
+  border-radius: 4px;
+}
+
+.skill-job-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.skill-job-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.skill-rank {
+  flex-shrink: 0;
+  min-width: 2.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1rem;
+  border: 1px solid transparent;
+}
+
+.skill-rank-s {
+  background: #fff8e1;
+  border-color: #d4af37;
+  color: #8a6d00;
+}
+
+.skill-rank-a {
+  background: #e7f1ff;
+  border-color: #007bff;
+  color: #0056b3;
+}
+
+.skill-rank-b {
+  background: #e8f5e9;
+  border-color: #66bb6a;
+  color: #2e7d32;
+}
+
+.skill-rank-c {
+  background: #f1f3f5;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.skill-rank-d {
+  background: #fff;
+  border-color: #dee2e6;
+  color: #868e96;
+}
+
+.skill-sheet-note {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.skill-sheet-debug summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: #495057;
+}
+
+@media (max-width: 767px) {
+  .skill-sheet-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .skill-sheet-card {
+    padding: 0.75rem;
+  }
+}

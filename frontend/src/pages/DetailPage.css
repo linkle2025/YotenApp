@@ -657,6 +657,17 @@
   transform: translate(-20px, -20px);
 }
 
+/* 狭い画面では左右の張り出しを控えめにして横はみ出しを防ぐ（左右対称を維持） */
+@media (max-width: 420px) {
+  .balance-element-right {
+    transform: translate(12px, -20px);
+  }
+
+  .balance-element-left {
+    transform: translate(-12px, -20px);
+  }
+}
+
 /* 旧クラス（互換性のため残す） */
 .balance-element-earth {
   grid-column: 3;
@@ -765,7 +776,9 @@
   top: 18%;
   right: 23%;
   width: 76%;
-  height: 60%;
+  /* 表示されるのは border-top の点線のみ。高さを持たせると回転後の
+     見えない領域がスマホ幅で横にはみ出すため 0 にする */
+  height: 0;
   border-top: 2px dashed #999;
   transform: rotate(-35deg);
   transform-origin: top right;
