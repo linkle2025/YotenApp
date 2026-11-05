@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -7,9 +7,11 @@ import { stemService } from '../services/stemService';
 import { starService } from '../services/starService';
 import StemModal from '../components/StemModal';
 import StarModal from '../components/StarModal';
-import SkillSheet from '../components/SkillSheet';
-import SkillInsight from '../components/SkillInsight';
+import SkillReport from '../components/SkillReport';
 import './DetailPage.css';
+
+// 計算デバッグ情報（五行バランス・鑑定スキル表・大運）の表示。必要なときだけ true にする
+const SHOW_DEBUG_INFO = false;
 
 // 五行バランス図の位置ごとの解説（位置のみで決まり、五行は考慮しない）
 const POSITION_TOOLTIP_DATA = {
@@ -34,6 +36,7 @@ const DetailPage = () => {
   const [selectedStar, setSelectedStar] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const sidebarRef = useRef(null);
 
   useEffect(() => {
     const mql = window.matchMedia('(max-width: 767px)');
@@ -42,6 +45,26 @@ const DetailPage = () => {
     mql.addEventListener('change', handler);
     return () => mql.removeEventListener('change', handler);
   }, []);
+
+  // 左サイドをスクロールに追従させる。サイドが画面より高い場合は、下端が見えた位置で止まるよう
+  // sticky の top を「画面の高さ − サイドの高さ」に合わせる（overflow を使うと吹き出しが切れるため）
+  useEffect(() => {
+    const el = sidebarRef.current;
+    if (!el) return undefined;
+    const MARGIN = 16;
+    const update = () => {
+      const top = Math.min(MARGIN, window.innerHeight - el.offsetHeight - MARGIN);
+      el.style.setProperty('--sidebar-sticky-top', `${top}px`);
+    };
+    update();
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : null;
+    if (observer) observer.observe(el);
+    window.addEventListener('resize', update);
+    return () => {
+      if (observer) observer.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, [calculation]);
 
   useEffect(() => {
     loadDetail();
@@ -370,18 +393,39 @@ const DetailPage = () => {
   return (
     <div className="detail-container">
       <div className="detail-box">
-        <h1>{calculation.name} さんの鑑定表</h1>
-        <div className="detail-section">
-
+        <div className="detail-header">
+          <h1>{calculation.name} さんの鑑定表</h1>
+          {calculation.day_pillar_heavenly_stem && (
+            <button
+              type="button"
+              className="detail-day-stem"
+              onClick={() => handleStemClick(calculation.day_pillar_heavenly_stem)}
+              title="クリックして日干の説明を見る"
+            >
+              {getStemImageName(calculation.day_pillar_heavenly_stem) && (
+                <img
+                  src={`/img/${getStemImageName(calculation.day_pillar_heavenly_stem)}.png`}
+                  alt=""
+                  className="detail-day-stem-image"
+                />
+              )}
+              <span>
+                日干：{calculation.day_pillar_heavenly_stem}
+                {calculation.skill_sheet?.day_stem_type ? `（${calculation.skill_sheet.day_stem_type}）` : ''}
+              </span>
+            </button>
+          )}
+          <p className="detail-birth">
+            {calculation.birth_year}年{calculation.birth_month}月{calculation.birth_day}日
+            {calculation.hour_unknown ? '（時間不明）' : `${calculation.birth_hour}時`+`${calculation.birth_minute}分` } ({calculation.gender === 'male' ? '男性' : '女性'})　{calculation.prefecture}生まれ
+          </p>
         </div>
-        
-        <div className="pillars-and-elements-container">
+
+        <div className="detail-layout">
+          {/* 左サイド：八字（命式）と五行バランス */}
+          <aside className="detail-sidebar" ref={sidebarRef}>
           <div className="pillars-section">
             <div className="detail-section">
-              <h2>
-                {calculation.birth_year}年{calculation.birth_month}月{calculation.birth_day}日
-                {calculation.hour_unknown ? '（時間不明）' : `${calculation.birth_hour}時`+`${calculation.birth_minute}分` } ({calculation.gender === 'male' ? '男性' : '女性'})　{calculation.prefecture}生まれ
-              </h2>
               <div className="pillars-table">
                 <table>
                   <thead>
@@ -588,7 +632,6 @@ const DetailPage = () => {
           
           <div className="five-elements-section">
             <div className="detail-section">
-              <h2>五行バランス</h2>
               <div className={`five-elements-container${strengthLabel === '身旺' ? ' strength-miou' : strengthLabel === '身弱' ? ' strength-mijaku' : ''}`}>
             <div className="five-elements-diagram">
               {/* 点数表示 */}
@@ -717,8 +760,8 @@ const DetailPage = () => {
               </div>
             )}
             
-            {/* デバッグ情報（管理者のみ） */}
-            {isAdmin() && calculation.five_elements_balance_data?.debug_info && (
+            {/* デバッグ情報（管理者のみ・SHOW_DEBUG_INFO で切り替え） */}
+            {SHOW_DEBUG_INFO && isAdmin() && calculation.five_elements_balance_data?.debug_info && (
               <div className="balance-debug">
                 <h3>計算デバッグ情報</h3>
                 {calculation.five_elements_balance_data.debug_info.map((info, i) => (
@@ -728,12 +771,22 @@ const DetailPage = () => {
             )}
               </div>
             </div>
+          </div>
+          </aside>
 
-            {/* 鑑定スキル表（全ユーザーに表示） */}
-            <SkillSheet skillSheet={calculation.skill_sheet} showDebug={isAdmin()} />
+          {/* 右メイン：鑑定スキル表と判定の要点 */}
+          <div className="detail-main">
+            {/* 鑑定スキル表＋判定の要点（解説は Gemini。ボタンを押したときだけ生成） */}
+            <SkillReport
+              calculationId={calculation.id}
+              skillSheet={calculation.skill_sheet}
+              showDebug={SHOW_DEBUG_INFO && isAdmin()}
+            />
+          </div>
+        </div>
 
-            {/* 判定の要点（Gemini による解説。ボタンを押したときだけ生成） */}
-            <SkillInsight calculationId={calculation.id} skillSheet={calculation.skill_sheet} />
+        {/* 大運・年運（DEBUG=True のときのみ表示） */}
+        <div className="detail-extra">
 
             {/* 大運セクション（DEBUG=True のときのみ表示） */}
             {calculation.show_taiun_nenun && calculation.taiun_data && calculation.taiun_data.taiun_list && (
@@ -770,8 +823,8 @@ const DetailPage = () => {
                   </table>
                 </div>
                 
-                {/* デバッグ情報（管理者のみ） */}
-                {isAdmin() && calculation.taiun_data?.debug_info && (
+                {/* デバッグ情報（管理者のみ・SHOW_DEBUG_INFO で切り替え） */}
+                {SHOW_DEBUG_INFO && isAdmin() && calculation.taiun_data?.debug_info && (
                   <div className="taiun-debug">
                     <h3>大運計算デバッグ情報</h3>
                     {calculation.taiun_data.debug_info.map((info, i) => (
@@ -815,7 +868,6 @@ const DetailPage = () => {
                 </div>
               </div>
             )}
-          </div>
         </div>
 
         <div className="detail-actions">

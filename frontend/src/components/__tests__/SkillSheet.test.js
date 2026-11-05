@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import SkillSheet from '../SkillSheet';
 
-const sampleSheet = {
+export const sampleSheet = {
   version: 'alpha-1',
   is_reference: false,
   strength: { label: '身旺', diff: 17.5 },
@@ -29,32 +29,53 @@ describe('SkillSheet Component', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  test('renders heading, subtitle, abilities and jobs', () => {
+  test('renders abilities and jobs without section headings', () => {
     render(<SkillSheet skillSheet={sampleSheet} />);
-    expect(screen.getByText('鑑定スキル表（現代ビジネス版）')).toBeInTheDocument();
-    expect(screen.getByText('日干：己（田畑）／身旺／傷官格')).toBeInTheDocument();
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
     expect(screen.getByText('企画')).toBeInTheDocument();
     expect(screen.getByText('ゼロから構想を描く')).toBeInTheDocument();
     expect(screen.getByText('90')).toBeInTheDocument();
     expect(screen.getByRole('meter', { name: '企画 90点' })).toBeInTheDocument();
-    expect(screen.getByText('S')).toBeInTheDocument();
-    expect(screen.getByText(/試作版です/)).toBeInTheDocument();
+    expect(screen.getByText('（方針を決め、責任を取る経営者）')).toBeInTheDocument();
+    expect(screen.getByText('S')).toHaveClass('skill-rank-s');
   });
 
-  test('keeps job order from API (not sorted by rank)', () => {
+  test('sorts jobs from S downward (by score)', () => {
     render(<SkillSheet skillSheet={sampleSheet} />);
     const names = screen.getAllByText(/^(将軍|教官)$/).map((el) => el.textContent);
-    expect(names).toEqual(['将軍', '教官']);
+    expect(names).toEqual(['教官', '将軍']);
   });
 
-  test('shows reference notice when is_reference is true', () => {
-    render(<SkillSheet skillSheet={{ ...sampleSheet, is_reference: true }} />);
-    expect(screen.getByText('時間不明のため参考値')).toBeInTheDocument();
+  test('sorts abilities by score descending, keeping API order for ties', () => {
+    const sheet = {
+      ...sampleSheet,
+      abilities: [
+        { key: 'touritsu', name: '統率', meaning: 'm', score: 50 },
+        { key: 'kikaku', name: '企画', meaning: 'm', score: 90 },
+        { key: 'kaitaku', name: '開拓', meaning: 'm', score: 50 },
+        { key: 'kanri', name: '管理', meaning: 'm', score: 25 },
+      ],
+    };
+    const { container } = render(<SkillSheet skillSheet={sheet} />);
+    const names = Array.from(container.querySelectorAll('.skill-ability-cell .skill-name')).map(
+      (el) => el.textContent
+    );
+    expect(names).toEqual(['企画', '統率', '開拓', '管理']);
   });
 
-  test('does not show reference notice when is_reference is false', () => {
-    render(<SkillSheet skillSheet={sampleSheet} />);
-    expect(screen.queryByText('時間不明のため参考値')).not.toBeInTheDocument();
+  test('shows insight texts under each job and ability when provided', () => {
+    const insight = {
+      jobs: [{ key: 'kyoukan', text: '学ぶ力と伝える力が揃っています。' }],
+      abilities: [{ key: 'kikaku', text: '構想を描く力が最も高く出ています。' }],
+    };
+    render(<SkillSheet skillSheet={sampleSheet} insight={insight} />);
+    const kyoukanItem = screen.getByText('教官').closest('li');
+    expect(kyoukanItem).toHaveTextContent('学ぶ力と伝える力が揃っています。');
+    expect(kyoukanItem).toHaveTextContent('S');
+    const kikakuCell = screen.getByText('企画').closest('li');
+    expect(kikakuCell).toHaveTextContent('構想を描く力が最も高く出ています。');
+    // 解説のない職種には本文を出さない
+    expect(screen.getByText('将軍').closest('li').querySelector('.skill-job-text')).toBeNull();
   });
 
   test('debug info is shown only when showDebug is true', () => {

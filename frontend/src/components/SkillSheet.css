@@ -1,60 +1,19 @@
-.skill-sheet {
-  margin-top: 2rem;
-}
-
-.skill-sheet-subtitle {
-  margin: 0 0 0.75rem;
-  font-weight: bold;
-  color: #495057;
-}
-
-.skill-sheet-reference {
-  display: inline-block;
-  margin: 0 0 1rem;
-  padding: 0.25rem 0.75rem;
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 4px;
-  color: #856404;
-  font-size: 0.875rem;
-}
-
-.skill-sheet-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  align-items: start;
-}
-
-.skill-sheet-card {
-  min-width: 0;
-  padding: 1rem;
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-}
-
-.skill-sheet-card h3 {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
-  color: #555;
-}
-
-.skill-ability-list,
-.skill-job-list {
+/* ---------- 能力（3×3） ---------- */
+.skill-ability-grid {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
 }
 
-.skill-ability-item {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.skill-ability-item:last-child,
-.skill-job-item:last-child {
-  border-bottom: none;
+.skill-ability-cell {
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
 }
 
 .skill-ability-head {
@@ -71,51 +30,91 @@
 
 .skill-ability-score {
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: #007bff;
   font-variant-numeric: tabular-nums;
 }
 
-.skill-meaning {
-  font-size: 0.8rem;
-  color: #6c757d;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
-}
-
 .skill-bar {
-  margin-top: 0.35rem;
-  height: 8px;
+  margin: 0.25rem 0 0.2rem;
+  height: 5px;
   background: #e9ecef;
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .skill-bar-fill {
   height: 100%;
   background: #007bff;
-  border-radius: 4px;
+  border-radius: 3px;
+}
+
+.skill-meaning {
+  font-size: 0.75rem;
+  color: #6c757d;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.skill-ability-text {
+  margin: 0.4rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px dashed #dee2e6;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: #343a40;
+}
+
+/* ---------- 職種適性（職種名（意味） ランク ＋ 個別解説） ---------- */
+.skill-job-list {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 2rem;
+  border-top: 2px solid #007bff;
 }
 
 .skill-job-item {
+  min-width: 0;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.skill-job-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.6rem 0;
-  border-bottom: 1px solid #dee2e6;
+}
+
+.skill-job-title {
+  min-width: 0;
+}
+
+.skill-job-title .skill-name {
+  font-size: 1.05rem;
+}
+
+.skill-job-meaning {
+  font-size: 0.85rem;
+  color: #6c757d;
+  overflow-wrap: anywhere;
 }
 
 .skill-job-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: #212529;
+  overflow-wrap: anywhere;
 }
 
 .skill-rank {
   flex-shrink: 0;
   min-width: 2.75rem;
-  padding: 0.2rem 0.5rem;
+  padding: 0.15rem 0.5rem;
   border-radius: 4px;
   text-align: center;
   font-weight: bold;
@@ -153,25 +152,21 @@
   color: #868e96;
 }
 
-.skill-sheet-note {
-  margin: 1rem 0 0;
-  font-size: 0.8rem;
-  color: #6c757d;
-}
-
 .skill-sheet-debug summary {
   cursor: pointer;
   font-weight: bold;
   color: #495057;
 }
 
-@media (max-width: 767px) {
-  .skill-sheet-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+/* 鑑定表ページの右メイン（.detail-main）の幅に応じて段組みを切り替える */
+@container (min-width: 560px) {
+  .skill-ability-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
 
-  .skill-sheet-card {
-    padding: 0.75rem;
+@container (min-width: 800px) {
+  .skill-job-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

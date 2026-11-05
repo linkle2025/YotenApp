@@ -1,7 +1,8 @@
 .detail-container {
-  max-width: 900px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  /* 画面全幅を使う横長レイアウト（超ワイド画面では読みやすさのため上限を設ける） */
+  max-width: 1920px;
+  margin: 1.5rem auto;
+  padding: 0 1.5rem;
 }
 
 .detail-box {
@@ -1010,3 +1011,197 @@
   font-family: monospace;
 }
 
+/* =========================================================
+   横長レイアウト（左サイド：命式・五行バランス／右メイン：鑑定スキル表・判定の要点）
+   - 768px 以上で2列、1200px 以上でサイドを広げる
+   - 767px 以下は従来どおり縦一列
+   ========================================================= */
+.detail-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.detail-box .detail-header h1 {
+  margin: 0;
+  text-align: left;
+  font-size: 1.6rem;
+}
+
+.detail-birth {
+  margin: 0 0 0 auto;
+  color: #555;
+  font-weight: bold;
+}
+
+.detail-day-stem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.75rem 0.2rem 0.4rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+}
+
+.detail-day-stem:hover {
+  background: #e9ecef;
+}
+
+.detail-day-stem-image {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+}
+
+.detail-sidebar,
+.detail-main {
+  min-width: 0;
+}
+
+/* 右メインの幅に応じてスキル表・判定の要点の段組みを切り替える（コンテナクエリ） */
+.detail-main {
+  container-type: inline-size;
+}
+
+
+.detail-extra {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 2rem;
+}
+
+@media (max-width: 767px) {
+  .detail-container {
+    padding: 0 1rem;
+  }
+
+  .detail-box .detail-header h1 {
+    font-size: 1.4rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .detail-box {
+    padding: 1.5rem 2rem;
+  }
+
+  .detail-layout {
+    grid-template-columns: 360px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  /* 左サイドはスクロールに追従（top は DetailPage.js がサイドの高さから計算） */
+  .detail-sidebar {
+    position: sticky;
+    top: var(--sidebar-sticky-top, 1rem);
+  }
+
+  /* ---- 左サイドをコンパクトに ---- */
+  .detail-sidebar .detail-section {
+    margin-bottom: 1.25rem;
+  }
+
+  .detail-sidebar .detail-section h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .detail-sidebar .pillars-table {
+    margin-top: 0.5rem;
+  }
+
+  .detail-sidebar .pillars-table th,
+  .detail-sidebar .pillars-table td {
+    padding: 0.4rem 0.25rem;
+  }
+
+  .detail-sidebar .pillars-table th {
+    font-size: 0.85rem;
+  }
+
+  .detail-sidebar .pillars-table td,
+  .detail-sidebar .stem-main {
+    font-size: 1.15rem;
+  }
+
+  .detail-sidebar .stem-star {
+    font-size: 0.7rem;
+    margin-top: 0.1rem;
+  }
+
+  .detail-sidebar .day-stem-image {
+    width: 28px;
+    height: 28px;
+  }
+
+  .detail-sidebar .day-stem-container {
+    gap: 0.25rem;
+  }
+
+  .detail-sidebar .stem-detail {
+    font-size: 0.75rem;
+  }
+
+  .detail-sidebar .kangou-display {
+    padding-right: 0;
+  }
+
+  /* 五行バランス図は絶対配置の要素が多いため、zoom でまとめて縮小する */
+  .detail-sidebar .five-elements-container {
+    margin-top: 0.5rem;
+    zoom: 0.62;
+  }
+
+  /* 吹き出しと解説文は縮小を打ち消して元の大きさで読めるようにする */
+  .detail-sidebar .position-tooltip,
+  .detail-sidebar .five-elements-explanation {
+    zoom: 1.6129;
+  }
+
+  .detail-sidebar .five-elements-explanation {
+    max-width: none;
+    margin: 0.75rem 0 0;
+  }
+
+  .detail-sidebar .five-elements-explanation p {
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: #555;
+  }
+}
+
+@media (min-width: 1200px) {
+  .detail-layout {
+    grid-template-columns: 400px minmax(0, 1fr);
+    gap: 2.5rem;
+  }
+
+  .detail-sidebar .five-elements-container {
+    zoom: 0.68;
+  }
+
+  .detail-sidebar .position-tooltip,
+  .detail-sidebar .five-elements-explanation {
+    zoom: 1.4706;
+  }
+
+  /* 大運・年運は横に並べる */
+  .detail-extra {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
