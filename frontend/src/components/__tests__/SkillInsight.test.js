@@ -91,11 +91,17 @@ describe('SkillInsight Component', () => {
     fortuneService.getSkillInsight.mockResolvedValue({ insight, available: true });
     render(<SkillInsight calculationId={1} skillSheet={skillSheet} />);
 
-    expect(await screen.findByText('教官S：')).toBeInTheDocument();
-    expect(screen.getByText('将軍C+：')).toBeInTheDocument();
-    const labels = screen.getAllByText(/^(将軍|教官).+：$/).map((el) => el.textContent);
+    await screen.findByText('印と食傷が強い命式です。');
+    const labels = Array.from(document.querySelectorAll('.skill-insight-jobs .skill-insight-job-label')).map(
+      (el) => el.textContent
+    );
     expect(labels).toEqual(['将軍C+：', '教官S：']);
-    expect(screen.getByText('企画90：')).toBeInTheDocument();
+    // ランクは職種名と別要素（「現場LB」のように続けて読めないように）
+    expect(screen.getByText('C+')).toHaveClass('skill-insight-rank');
+    const abilityLabels = Array.from(
+      document.querySelectorAll('.skill-insight-abilities .skill-insight-job-label')
+    ).map((el) => el.textContent);
+    expect(abilityLabels).toEqual(['企画90：']);
     expect(screen.getByText('学んだことを形にすると活きます。')).toBeInTheDocument();
     expect(screen.getByText(/AIによる生成文です（gemini-test-model・2026年11月5日/)).toBeInTheDocument();
   });

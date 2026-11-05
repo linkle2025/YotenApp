@@ -99,7 +99,7 @@ const SkillInsight = ({ calculationId, skillSheet }) => {
                 <li key={job.key}>
                   <span className="skill-insight-job-label">
                     {job.name}
-                    {job.rank}：
+                    <span className="skill-insight-rank">{job.rank}</span>：
                   </span>
                   {jobTexts[job.key]}
                 </li>
@@ -115,7 +115,7 @@ const SkillInsight = ({ calculationId, skillSheet }) => {
                   <li key={ability.key}>
                     <span className="skill-insight-job-label">
                       {ability.name}
-                      {ability.score}：
+                      <span className="skill-insight-rank">{ability.score}</span>：
                     </span>
                     {abilityTexts[ability.key]}
                   </li>
