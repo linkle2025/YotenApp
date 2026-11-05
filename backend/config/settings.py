@@ -207,6 +207,16 @@ REST_FRAMEWORK = {
     'COMPACT_JSON': False,
 }
 
+# 判定の要点（Gemini API による生成）  仕様: doc/判定の要点生成.md
+# 個人情報を扱うため有料枠のキーでのみ利用する。GEMINI_PAID_TIER_CONFIRMED=True かつ
+# SKILL_INSIGHT_ENABLED=True かつ GEMINI_API_KEY 設定済みのときだけ機能が有効になる。
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-3.6-flash')
+GEMINI_PAID_TIER_CONFIRMED = config('GEMINI_PAID_TIER_CONFIRMED', default=False, cast=bool)
+GEMINI_TIMEOUT_SECONDS = config('GEMINI_TIMEOUT_SECONDS', default=40, cast=int)
+SKILL_INSIGHT_ENABLED = config('SKILL_INSIGHT_ENABLED', default=True, cast=bool)
+SKILL_INSIGHT_DAILY_LIMIT = config('SKILL_INSIGHT_DAILY_LIMIT', default=20, cast=int)
+
 # CORS settings
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',

@@ -47,5 +47,17 @@ export const fortuneService = {
     const response = await api.post('/fortune/kimon-tonkou/', data);
     return response.data;
   },
+
+  // 判定の要点（LLM生成）：最新のキャッシュを取得（なければ insight: null）
+  async getSkillInsight(id) {
+    const response = await api.get(`/fortune/history/${id}/skill-insight/`);
+    return response.data;
+  },
+
+  // 判定の要点（LLM生成）：生成。regenerate=true でキャッシュを無視して再生成
+  async generateSkillInsight(id, { regenerate = false, context = null } = {}) {
+    const response = await api.post(`/fortune/history/${id}/skill-insight/`, { regenerate, context });
+    return response.data;
+  },
 };
 

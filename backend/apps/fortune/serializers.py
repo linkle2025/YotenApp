@@ -7,6 +7,43 @@ from .skill_sheet import calculate_skill_sheet
 from apps.stems.models import Stem
 
 
+PILLAR_KEYS = ('year_pillar', 'month_pillar', 'day_pillar', 'hour_pillar')
+
+
+def pillars_from_calculation(obj):
+    """計算記録から四柱の天干・地支を取り出す"""
+    return {
+        key: {
+            'heavenly_stem': getattr(obj, f'{key}_heavenly_stem', '') or '',
+            'earthly_branch': getattr(obj, f'{key}_earthly_branch', '') or '',
+        }
+        for key in PILLAR_KEYS
+    }
+
+
+def build_skill_sheet(obj):
+    """
+    計算記録から鑑定スキル表を算出する（DBには保存しない）
+    five_elements_balance_data が空の古いレコードでは None を返す。
+    """
+    scores = (obj.five_elements_balance_data or {}).get('scores')
+    day_stem = obj.day_pillar_heavenly_stem
+    if not scores or not day_stem:
+        return None
+    try:
+        sheet = calculate_skill_sheet(
+            pillars_from_calculation(obj), day_stem, scores, obj.kakukyoku or '',
+            hour_unknown=obj.hour_unknown,
+        )
+    except ValueError:
+        return None
+    sheet['day_stem'] = day_stem
+    sheet['day_stem_type'] = (
+        Stem.objects.filter(name=day_stem).values_list('element_type', flat=True).first() or ''
+    )
+    return sheet
+
+
 class FortuneCalculationSerializer(serializers.ModelSerializer):
     """四柱推命計算シリアライザー"""
     
@@ -119,28 +156,7 @@ class FortuneCalculationSerializer(serializers.ModelSerializer):
 
     def get_skill_sheet(self, obj):
         """鑑定スキル表（表示時に算出。DBには保存しない）"""
-        scores = (obj.five_elements_balance_data or {}).get('scores')
-        day_stem = obj.day_pillar_heavenly_stem
-        if not scores or not day_stem:
-            return None
-        pillars = {
-            key: {
-                'heavenly_stem': getattr(obj, f'{key}_heavenly_stem', '') or '',
-                'earthly_branch': getattr(obj, f'{key}_earthly_branch', '') or '',
-            }
-            for key in ('year_pillar', 'month_pillar', 'day_pillar', 'hour_pillar')
-        }
-        try:
-            sheet = calculate_skill_sheet(
-                pillars, day_stem, scores, obj.kakukyoku or '', hour_unknown=obj.hour_unknown
-            )
-        except ValueError:
-            return None
-        sheet['day_stem'] = day_stem
-        sheet['day_stem_type'] = (
-            Stem.objects.filter(name=day_stem).values_list('element_type', flat=True).first() or ''
-        )
-        return sheet
+        return build_skill_sheet(obj)
 
     def create(self, validated_data):
         # 時間不明かどうかを確認

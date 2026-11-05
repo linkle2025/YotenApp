@@ -8,6 +8,7 @@ import { starService } from '../services/starService';
 import StemModal from '../components/StemModal';
 import StarModal from '../components/StarModal';
 import SkillSheet from '../components/SkillSheet';
+import SkillInsight from '../components/SkillInsight';
 import './DetailPage.css';
 
 // 五行バランス図の位置ごとの解説（位置のみで決まり、五行は考慮しない）
@@ -730,6 +731,9 @@ const DetailPage = () => {
 
             {/* 鑑定スキル表（全ユーザーに表示） */}
             <SkillSheet skillSheet={calculation.skill_sheet} showDebug={isAdmin()} />
+
+            {/* 判定の要点（Gemini による解説。ボタンを押したときだけ生成） */}
+            <SkillInsight calculationId={calculation.id} skillSheet={calculation.skill_sheet} />
 
             {/* 大運セクション（DEBUG=True のときのみ表示） */}
             {calculation.show_taiun_nenun && calculation.taiun_data && calculation.taiun_data.taiun_list && (

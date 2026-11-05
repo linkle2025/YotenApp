@@ -40,6 +40,13 @@ services:
       - DATABASE_PORT=5432
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-app.yoten.org}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-https://app.yoten.org}
+      # 判定の要点（Gemini API）。詳細: doc/判定の要点生成.md
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.6-flash}
+      - GEMINI_PAID_TIER_CONFIRMED=${GEMINI_PAID_TIER_CONFIRMED:-False}
+      - SKILL_INSIGHT_ENABLED=${SKILL_INSIGHT_ENABLED:-True}
+      - SKILL_INSIGHT_DAILY_LIMIT=${SKILL_INSIGHT_DAILY_LIMIT:-20}
+      - GEMINI_TIMEOUT_SECONDS=${GEMINI_TIMEOUT_SECONDS:-40}
     depends_on:
       db:
         condition: service_healthy

@@ -1,0 +1,123 @@
+.skill-insight {
+  margin-top: 2rem;
+}
+
+.skill-insight-empty {
+  padding: 1rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.skill-insight-empty p {
+  margin: 0 0 0.75rem;
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.skill-insight-unavailable {
+  color: #6c757d;
+}
+
+.skill-insight-button {
+  padding: 0.6rem 1.5rem;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.skill-insight-button:hover {
+  background: #0056b3;
+}
+
+.skill-insight-body {
+  padding: 1rem;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  line-height: 1.7;
+  color: #212529;
+  overflow-wrap: anywhere;
+}
+
+.skill-insight-summary {
+  margin: 0 0 1rem;
+}
+
+.skill-insight-jobs,
+.skill-insight-abilities ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.skill-insight-jobs li,
+.skill-insight-abilities li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.skill-insight-jobs li:last-child,
+.skill-insight-abilities li:last-child {
+  border-bottom: none;
+}
+
+.skill-insight-job-label {
+  font-weight: bold;
+  color: #0056b3;
+}
+
+.skill-insight-abilities {
+  margin-top: 1rem;
+}
+
+.skill-insight-abilities summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: #495057;
+}
+
+.skill-insight-advice {
+  margin: 1rem 0 0;
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-left: 4px solid #007bff;
+  border-radius: 4px;
+}
+
+.skill-insight-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  color: #6c757d;
+}
+
+.skill-insight-regenerate {
+  padding: 0.25rem 0.75rem;
+  background: #fff;
+  color: #007bff;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.skill-insight-regenerate:hover {
+  background: #007bff;
+  color: #fff;
+}
+
+@media (max-width: 767px) {
+  .skill-insight-body,
+  .skill-insight-empty {
+    padding: 0.75rem;
+  }
+}

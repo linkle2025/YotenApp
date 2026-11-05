@@ -73,3 +73,30 @@ class FortuneCalculation(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.birth_year}年{self.birth_month}月{self.birth_day}日{self.birth_hour}時{self.birth_minute}分"
+
+
+class SkillInsight(models.Model):
+    """判定の要点（LLM生成）のキャッシュ。仕様: doc/判定の要点生成.md"""
+    calculation = models.ForeignKey(
+        FortuneCalculation, on_delete=models.CASCADE, related_name='skill_insights', verbose_name='計算記録'
+    )
+    # 入力JSON（context を含む）+ PROMPT_VERSION + モデル名の SHA-256
+    input_hash = models.CharField(max_length=64, db_index=True, verbose_name='入力ハッシュ')
+    prompt_version = models.CharField(max_length=20, verbose_name='プロンプト版数')
+    model_name = models.CharField(max_length=100, verbose_name='モデル名')
+    context = models.JSONField(null=True, blank=True, verbose_name='本人コンテキスト')
+    content = models.JSONField(verbose_name='生成内容')
+    input_tokens = models.IntegerField(null=True, blank=True, verbose_name='入力トークン数')
+    output_tokens = models.IntegerField(null=True, blank=True, verbose_name='出力トークン数')
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name='skill_insights', verbose_name='生成者'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = '判定の要点'
+        verbose_name_plural = '判定の要点'
+
+    def __str__(self):
+        return f'{self.calculation_id} - {self.model_name} - {self.created_at:%Y-%m-%d %H:%M}'

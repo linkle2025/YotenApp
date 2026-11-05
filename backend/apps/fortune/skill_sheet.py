@@ -231,46 +231,104 @@ def calculate_strength(element_group_scores):
     return float(diff), label
 
 
-def _kaku_bonus(ability_key, kakukyoku):
+def _matched_kaku(ability_key, kakukyoku):
+    """格補正の対象となる格名のうち、格局文字列に含まれるもの"""
     targets = KAKU_BONUS_TARGETS.get(ability_key)
     if not targets or not kakukyoku:
-        return 0
-    return KAKU_BONUS_POINTS if any(t in kakukyoku for t in targets) else 0
+        return []
+    return [t for t in targets if t in kakukyoku]
+
+
+def _kaku_bonus(ability_key, kakukyoku):
+    return KAKU_BONUS_POINTS if _matched_kaku(ability_key, kakukyoku) else 0
 
 
 def _strength_bonus(ability_key, strength_label):
     return STRENGTH_BONUS.get(ability_key, {}).get(strength_label, 0)
 
 
-def calculate_ability_scores(element_group_scores, star_points, strength_label, kakukyoku):
-    """能力値（丸め・クランプ後の整数）を算出する"""
+def calculate_ability_breakdowns(element_group_scores, star_points, strength_label, kakukyoku):
+    """
+    能力ごとの算出式の各項（丸め前）を返す
+
+    Returns:
+        dict: {能力key: [{'factor': str, 'value': Decimal}, ...]}
+        各項の合計が丸め・クランプ前の能力値になる。
+    """
     E = {g: _to_decimal(element_group_scores.get(g, 0)) for g in ELEMENT_GROUPS}
     P = {s: _to_decimal(star_points.get(s, 0)) for s in ALL_STARS}
     half = Decimal('0.5')
 
-    raw = {
-        'kikaku': E['食傷'] + half * (P['食神'] + P['傷官']),
-        'chiryaku': E['印'] + half * (P['偏印'] + P['印綬']),
-        'jikkou': half * E['食傷'] + half * E['比劫'],
-        'tairyoku': Decimal('0.6') * (E['比劫'] + E['印']),
-        'jinbou': half * (P['比肩'] + P['食神'] + P['偏財']),
-        'touritsu': E['官'] + half * (P['正官'] + P['偏官']),
-        'kaitaku': P['偏官'] + P['劫財'],
-        'shousai': E['財'] + half * (P['正財'] + P['偏財']),
-        'kanri': P['正官'] + P['正財'],
+    terms = {
+        'kikaku': [
+            ('食傷の五行', E['食傷']),
+            ('食神・傷官の星', half * (P['食神'] + P['傷官'])),
+        ],
+        'chiryaku': [
+            ('印の五行', E['印']),
+            ('偏印・印綬の星', half * (P['偏印'] + P['印綬'])),
+        ],
+        'jikkou': [
+            ('食傷の五行', half * E['食傷']),
+            ('比劫の五行', half * E['比劫']),
+        ],
+        'tairyoku': [
+            ('比劫・印の五行', Decimal('0.6') * (E['比劫'] + E['印'])),
+        ],
+        'jinbou': [
+            ('比肩・食神・偏財の星', half * (P['比肩'] + P['食神'] + P['偏財'])),
+        ],
+        'touritsu': [
+            ('官の五行', E['官']),
+            ('正官・偏官の星', half * (P['正官'] + P['偏官'])),
+        ],
+        'kaitaku': [
+            ('偏官の星', P['偏官']),
+            ('劫財の星', P['劫財']),
+        ],
+        'shousai': [
+            ('財の五行', E['財']),
+            ('正財・偏財の星', half * (P['正財'] + P['偏財'])),
+        ],
+        'kanri': [
+            ('正官の星', P['正官']),
+            ('正財の星', P['正財']),
+        ],
     }
 
-    scores = {}
+    breakdowns = {}
     for ability in ABILITIES:
         key = ability['key']
-        value = (
-            BASE_POINTS[key]
-            + raw[key]
-            + _strength_bonus(key, strength_label)
-            + _kaku_bonus(key, kakukyoku)
-        )
-        scores[key] = clamp_score(round_half_up(value))
-    return scores
+        items = [{'factor': '基礎点', 'value': _to_decimal(BASE_POINTS[key])}]
+        items += [{'factor': f, 'value': v} for f, v in terms[key]]
+        strength_bonus = _strength_bonus(key, strength_label)
+        if strength_bonus:
+            items.append({'factor': f'{strength_label}による補正', 'value': _to_decimal(strength_bonus)})
+        matched = _matched_kaku(key, kakukyoku)
+        if matched:
+            items.append({'factor': '・'.join(matched), 'value': _to_decimal(KAKU_BONUS_POINTS)})
+        breakdowns[key] = items
+    return breakdowns
+
+
+def calculate_ability_scores(element_group_scores, star_points, strength_label, kakukyoku):
+    """能力値（丸め・クランプ後の整数）を算出する"""
+    breakdowns = calculate_ability_breakdowns(
+        element_group_scores, star_points, strength_label, kakukyoku
+    )
+    return {
+        key: clamp_score(round_half_up(sum(item['value'] for item in items)))
+        for key, items in breakdowns.items()
+    }
+
+
+def _breakdown_for_json(items):
+    return [{'factor': item['factor'], 'value': float(item['value'])} for item in items]
+
+
+def _job_weights_by_name(job_key):
+    names = {a['key']: a['name'] for a in ABILITIES}
+    return {names[k]: w for k, w in JOB_WEIGHTS[job_key].items()}
 
 
 def get_rank(score):
@@ -311,6 +369,9 @@ def calculate_skill_sheet(pillars, day_stem, five_element_scores, kakukyoku, hou
     element_group_scores = calculate_element_group_scores(day_stem, five_element_scores)
     star_points = calculate_star_points(pillars, day_stem, hour_unknown)
     diff, strength_label = calculate_strength(element_group_scores)
+    breakdowns = calculate_ability_breakdowns(
+        element_group_scores, star_points, strength_label, kakukyoku
+    )
     ability_scores = calculate_ability_scores(
         element_group_scores, star_points, strength_label, kakukyoku
     )
@@ -322,11 +383,20 @@ def calculate_skill_sheet(pillars, day_stem, five_element_scores, kakukyoku, hou
         'strength': {'label': strength_label, 'diff': diff},
         'kakukyoku': kakukyoku,
         'abilities': [
-            {**ability, 'score': ability_scores[ability['key']]}
+            {
+                **ability,
+                'score': ability_scores[ability['key']],
+                'breakdown': _breakdown_for_json(breakdowns[ability['key']]),
+            }
             for ability in ABILITIES
         ],
         'jobs': [
-            {**job, 'score': job_scores[job['key']], 'rank': get_rank(job_scores[job['key']])}
+            {
+                **job,
+                'score': job_scores[job['key']],
+                'rank': get_rank(job_scores[job['key']]),
+                'weights': _job_weights_by_name(job['key']),
+            }
             for job in JOBS
         ],
         'inputs': {

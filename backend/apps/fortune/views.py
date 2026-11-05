@@ -2,6 +2,7 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 import logging
 from .models import FortuneCalculation
@@ -16,6 +17,7 @@ from .calculators import (
     get_kyokusu_for_date
 )
 from apps.accounts.models import UserProfile
+from . import insight_service
 
 logger = logging.getLogger(__name__)
 
@@ -308,3 +310,39 @@ def calculate_kimon_tonkou(request):
         response_data['natural_time_str'] = natural_time_str
     
     return Response(response_data)
+
+
+class SkillInsightView(APIView):
+    """
+    判定の要点（LLM生成）  仕様: doc/判定の要点生成.md
+    GET : 最新のキャッシュを返す（なければ insight=null）
+    POST: 生成する。body {"regenerate": false, "context": null}
+    """
+    permission_classes = [IsAuthenticated]
+
+    def _get_calculation(self, request, pk):
+        return get_object_or_404(FortuneCalculation, pk=pk, user=request.user)
+
+    def get(self, request, pk):
+        calculation = self._get_calculation(request, pk)
+        insight = insight_service.get_latest_insight(calculation)
+        return Response({
+            'insight': insight_service.insight_to_dict(insight, is_cached=True) if insight else None,
+            'available': insight_service.is_available(),
+        })
+
+    def post(self, request, pk):
+        calculation = self._get_calculation(request, pk)
+        regenerate = request.data.get('regenerate', False)
+        if not isinstance(regenerate, bool):
+            return Response({'detail': 'regenerate は true / false で指定してください'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            insight, is_cached = insight_service.generate_insight(
+                calculation, request.user, regenerate=regenerate, context=request.data.get('context'),
+            )
+        except ValueError as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except insight_service.InsightError as e:
+            return Response({'detail': e.message}, status=e.status_code)
+        return Response({'insight': insight_service.insight_to_dict(insight, is_cached=is_cached)})

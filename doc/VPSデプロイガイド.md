@@ -106,6 +106,14 @@ REACT_APP_API_URL=https://app.yoten.org/api
 
 # SSL設定（オプション）
 SECURE_SSL_REDIRECT=True
+
+# 判定の要点（Gemini API）。有料枠のキーを確認してから GEMINI_PAID_TIER_CONFIRMED=True にする
+GEMINI_API_KEY=
+GEMINI_MODEL=gemini-3.6-flash
+GEMINI_PAID_TIER_CONFIRMED=False
+SKILL_INSIGHT_ENABLED=True
+SKILL_INSIGHT_DAILY_LIMIT=20
+GEMINI_TIMEOUT_SECONDS=40
 ```
 
 **重要**: `SECRET_KEY` は強力なランダム文字列に変更してください。以下のコマンドで生成できます：
@@ -113,6 +121,21 @@ SECURE_SSL_REDIRECT=True
 ```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
+
+### 3.2 判定の要点（Gemini API）の設定
+
+判定の要点は個人の命式を Gemini に送るため、**課金を有効にした Google Cloud プロジェクト（有料枠）のキーだけ**を使います。無料枠では、入力内容が Google のサービス改善に使われる場合があります。
+
+1. [Google AI Studio](https://aistudio.google.com/) で、課金を有効にした Google Cloud プロジェクトを選び、API キーを発行します。
+2. AI Studio の課金・利用枠の画面で、そのプロジェクトが有料枠（Paid tier）になっていることを確認します。あわせて、Google の最新の利用規約でデータの取り扱い条件を確認します。
+3. `.env.prod` に `GEMINI_API_KEY` を設定します。
+4. 確認が済んだら `GEMINI_PAID_TIER_CONFIRMED=True` にします。`False` の間は機能が動かず、画面には「現在、判定の要点は生成できません。」と表示されます。
+5. バックエンドを再起動します：`docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate backend`
+
+- 1日の生成回数の上限は `SKILL_INSIGHT_DAILY_LIMIT`（1ユーザーあたり）で変えられます。機能を止めるときは `SKILL_INSIGHT_ENABLED=False` にします。
+- 生成履歴とトークン数は、Django 管理画面の「判定の要点」で確認できます。
+- 生成には最大80秒ほどかかるため、`nginx-proxy.conf` で判定の要点の URL だけ `proxy_read_timeout 120s` にしています。すでに稼働中のサーバーでは、更新した `nginx-proxy.conf` の該当 location を `/etc/nginx/sites-available/yotenapp` に反映し、`sudo nginx -t && sudo systemctl reload nginx` を実行してください。
+- 詳細は [判定の要点生成.md](./判定の要点生成.md) を参照してください。
 
 ## 4. Nginxリバースプロキシの設定
 
