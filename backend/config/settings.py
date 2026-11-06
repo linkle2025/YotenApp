@@ -205,7 +205,29 @@ REST_FRAMEWORK = {
     ],
     'UNICODE_JSON': True,
     'COMPACT_JSON': False,
+    # パスワードリセット API の回数制限（IP 単位）
+    'DEFAULT_THROTTLE_RATES': {
+        'password_reset': config('PASSWORD_RESET_THROTTLE_RATE', default='5/hour'),
+        'password_reset_confirm': '20/hour',
+    },
 }
+
+# メール送信  詳細: doc/パスワードリセット.md
+# 開発環境の既定はコンソール出力（docker compose logs backend にメール本文が出る）。
+# 本番は EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend と yoten.app のメールサーバーの SMTP 設定を .env.prod に書く。
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
+EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=20, cast=int)
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='陽てん塾 <noreply@yoten.app>')
+
+# パスワードリセット：メールに載せるリンクの宛先（フロントエンドの URL）と有効期限（秒）
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+PASSWORD_RESET_TIMEOUT = config('PASSWORD_RESET_TIMEOUT', default=3600, cast=int)
 
 # 判定の要点（Gemini API による生成）  仕様: doc/判定の要点生成.md
 # 個人情報を扱うため有料枠のキーでのみ利用する。GEMINI_PAID_TIER_CONFIRMED=True かつ

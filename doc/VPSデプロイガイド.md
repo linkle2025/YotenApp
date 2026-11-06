@@ -137,6 +137,17 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 - 生成には最大80秒ほどかかるため、`nginx-proxy.conf` で判定の要点の URL だけ `proxy_read_timeout 120s` にしています。すでに稼働中のサーバーでは、更新した `nginx-proxy.conf` の該当 location を `/etc/nginx/sites-available/yotenapp` に反映し、`sudo nginx -t && sudo systemctl reload nginx` を実行してください。
 - 詳細は [判定の要点生成.md](./判定の要点生成.md) を参照してください。
 
+### 3.3 メール送信（パスワードリセット）の設定
+
+「パスワードを忘れた場合」のリセットメールを送るため、SMTP サーバーを設定します。
+
+1. yoten.app のメールサーバーで送信用のアカウント（例: `noreply@yoten.app`）を用意し、SMTP のホスト名・ポート・暗号化方式（587番は STARTTLS、465番は SSL）を確認します。迷惑メール扱いを避けるため、yoten.app の DNS に SPF・DKIM が設定されていることも確認します。
+2. `.env.prod` に `EMAIL_HOST`・`EMAIL_PORT`・`EMAIL_HOST_USER`・`EMAIL_HOST_PASSWORD`・`EMAIL_USE_TLS`・`EMAIL_USE_SSL`・`DEFAULT_FROM_EMAIL`・`FRONTEND_URL=https://app.yoten.org` を設定します（例は `.env.prod.example`）。送信元（`DEFAULT_FROM_EMAIL`）は通常 `EMAIL_HOST_USER` と同じアドレスにします。
+3. バックエンドを再作成します：`docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate backend`
+4. ログイン画面の「パスワードを忘れた場合」から自分のアドレスで申し込み、メールが届くこと・リンクから再設定できることを確認します。届かない場合は `docker compose -f docker-compose.prod.yml logs backend` で送信エラーを確認します。
+
+- 詳細は [パスワードリセット.md](./パスワードリセット.md) を参照してください。
+
 ## 4. Nginxリバースプロキシの設定
 
 ### 4.1 Nginx設定ファイルの作成

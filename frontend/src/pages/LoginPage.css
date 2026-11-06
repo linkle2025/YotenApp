@@ -78,3 +78,52 @@
   text-decoration: underline;
 }
 
+.forgot-password-link {
+  text-align: center;
+  margin-top: 1rem;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.forgot-password-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.forgot-password-link a:hover {
+  text-decoration: underline;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.form-help {
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.field-error {
+  color: #721c24;
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0;
+}
+
+.submit-button:disabled {
+  background-color: #6c9fd6;
+  cursor: default;
+}
+
+.link-button {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}

@@ -47,6 +47,18 @@ services:
       - SKILL_INSIGHT_ENABLED=${SKILL_INSIGHT_ENABLED:-True}
       - SKILL_INSIGHT_DAILY_LIMIT=${SKILL_INSIGHT_DAILY_LIMIT:-20}
       - GEMINI_TIMEOUT_SECONDS=${GEMINI_TIMEOUT_SECONDS:-40}
+      # メール送信（パスワードリセット）。詳細: doc/パスワードリセット.md
+      - EMAIL_BACKEND=${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
+      - EMAIL_HOST=${EMAIL_HOST:-}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS:-True}
+      - EMAIL_USE_SSL=${EMAIL_USE_SSL:-False}
+      - EMAIL_TIMEOUT=${EMAIL_TIMEOUT:-20}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-noreply@yoten.app}
+      - FRONTEND_URL=${FRONTEND_URL:-https://app.yoten.org}
+      - PASSWORD_RESET_TIMEOUT=${PASSWORD_RESET_TIMEOUT:-3600}
     depends_on:
       db:
         condition: service_healthy

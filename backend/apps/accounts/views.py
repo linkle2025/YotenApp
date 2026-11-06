@@ -2,6 +2,9 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.models import User
 from django.contrib.auth import update_session_auth_hash
 from .serializers import (
@@ -10,9 +13,12 @@ from .serializers import (
     UserProfileSerializer,
     UserUpdateSerializer,
     PasswordChangeSerializer,
-    AdminUserSerializer
+    AdminUserSerializer,
+    PasswordResetRequestSerializer,
+    PasswordResetConfirmSerializer,
 )
 from .models import UserProfile
+from . import password_reset
 
 
 def is_admin(user):
@@ -149,3 +155,65 @@ def admin_user_detail(request, user_id):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+PASSWORD_RESET_REQUEST_MESSAGE = (
+    'ご入力のメールアドレスが登録されている場合、パスワード再設定用のメールを送信しました。'
+    'メールが届かない場合は、迷惑メールフォルダもご確認ください。'
+)
+PASSWORD_RESET_INVALID_LINK_MESSAGE = (
+    'このリンクは無効か、有効期限が切れています。もう一度パスワード再設定をお申し込みください。'
+)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_request(request):
+    """パスワードリセット依頼：該当ユーザーにリセット用リンクをメールで送る
+
+    登録の有無が分からないよう、メール形式が正しければ常に同じ応答を返す。
+    """
+    serializer = PasswordResetRequestSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    password_reset.send_reset_emails(serializer.validated_data['email'])
+    return Response({'message': PASSWORD_RESET_REQUEST_MESSAGE}, status=status.HTTP_200_OK)
+
+
+password_reset_request.cls.throttle_classes = [ScopedRateThrottle]
+password_reset_request.cls.throttle_scope = 'password_reset'
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_reset_confirm(request):
+    """パスワードリセット実行：リンクが有効なら新しいパスワードを設定する
+
+    password を省略すると、リンクの有効性だけを確認する（画面を開いたときの事前チェック用）。
+    """
+    data = request.data
+    if 'password' not in data:
+        user = password_reset.check_reset_link(data.get('uid', ''), data.get('token', ''))
+        if user is None:
+            return Response({'detail': PASSWORD_RESET_INVALID_LINK_MESSAGE}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'valid': True}, status=status.HTTP_200_OK)
+
+    serializer = PasswordResetConfirmSerializer(data=data)
+    serializer.is_valid(raise_exception=True)
+    user = password_reset.check_reset_link(serializer.validated_data['uid'], serializer.validated_data['token'])
+    if user is None:
+        return Response({'detail': PASSWORD_RESET_INVALID_LINK_MESSAGE}, status=status.HTTP_400_BAD_REQUEST)
+
+    password = serializer.validated_data['password']
+    try:
+        validate_password(password, user=user)
+    except DjangoValidationError as exc:
+        return Response({'password': list(exc.messages)}, status=status.HTTP_400_BAD_REQUEST)
+
+    # パスワードが変わるとトークンの元になるハッシュも変わるため、同じリンクは再利用できなくなる
+    user.set_password(password)
+    user.save()
+    return Response({'message': 'パスワードを再設定しました。新しいパスワードでログインしてください。'}, status=status.HTTP_200_OK)
+
+
+password_reset_confirm.cls.throttle_classes = [ScopedRateThrottle]
+password_reset_confirm.cls.throttle_scope = 'password_reset_confirm'

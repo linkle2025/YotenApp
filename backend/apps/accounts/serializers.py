@@ -171,3 +171,21 @@ class AdminUserSerializer(serializers.ModelSerializer):
         
         return instance
 
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """パスワードリセット依頼（メールアドレスのみ）"""
+    email = serializers.EmailField(max_length=254)
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """パスワードリセット実行（リンクの uid・token と新しいパスワード）"""
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    password = serializers.CharField(write_only=True, required=True, label='新しいパスワード')
+    password2 = serializers.CharField(write_only=True, required=True, label='確認用パスワード')
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "パスワードが一致しません。"})
+        return attrs

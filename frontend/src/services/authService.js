@@ -70,6 +70,28 @@ export const authService = {
     return response.data;
   },
 
+  // パスワードリセット（ログイン不要）
+  async requestPasswordReset(email) {
+    const response = await api.post('/auth/password-reset/', { email });
+    return response.data;
+  },
+
+  // password を渡さないとリンクの有効性だけを確認する
+  async checkPasswordResetLink(uid, token) {
+    const response = await api.post('/auth/password-reset/confirm/', { uid, token });
+    return response.data;
+  },
+
+  async confirmPasswordReset(uid, token, password, password2) {
+    const response = await api.post('/auth/password-reset/confirm/', {
+      uid,
+      token,
+      password,
+      password2,
+    });
+    return response.data;
+  },
+
   async deactivateAccount() {
     const response = await api.post('/auth/deactivate/');
     return response.data;

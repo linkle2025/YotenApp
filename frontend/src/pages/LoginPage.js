@@ -48,6 +48,9 @@ const LoginPage = () => {
           </div>
           <button type="submit" className="submit-button">ログイン</button>
         </form>
+        <p className="forgot-password-link">
+          <Link to="/password-reset">パスワードを忘れた場合</Link>
+        </p>
         <p className="register-link">
           アカウントをお持ちでない方は <Link to="/register">こちら</Link>
         </p>
