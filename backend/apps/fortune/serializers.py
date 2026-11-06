@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from django.conf import settings
 from rest_framework import serializers
 from .models import FortuneCalculation
 from .calculators import calculate_fortune, CITY_TIME_OFFSETS, get_pillar_for_solar_year, get_heavenly_star
 from .skill_sheet import calculate_skill_sheet
+from .skill_rules import RulesConfigError
 from apps.stems.models import Stem
+
+logger = logging.getLogger(__name__)
 
 
 PILLAR_KEYS = ('year_pillar', 'month_pillar', 'day_pillar', 'hour_pillar')
@@ -36,6 +41,10 @@ def build_skill_sheet(obj):
             hour_unknown=obj.hour_unknown,
         )
     except ValueError:
+        return None
+    except RulesConfigError:
+        # 設定ファイルの誤り。誤った点数を出さないよう表は出さず、内容をログに残す
+        logger.exception('鑑定スキル表: 解釈ルール設定（rules/skill_rules.toml）を読み込めません')
         return None
     sheet['day_stem'] = day_stem
     sheet['day_stem_type'] = (

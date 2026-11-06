@@ -16,7 +16,7 @@ from apps.fortune import skill_sheet as ss
 from apps.fortune.calculators import calculate_fortune
 from apps.fortune.models import FortuneCalculation, SkillInsight
 from apps.fortune.serializers import build_skill_sheet
-from apps.fortune.skill_facts import detect_notable_facts
+from apps.fortune import skill_rules
 
 FAKE_KEY = 'AIzaFAKEkeyForUnitTests_0123456789abc'
 
@@ -118,6 +118,20 @@ class BuildInsightInputTests(TestCase):
     def test_input_structure(self):
         data = svc.build_insight_input(self.calc)
         self.assertEqual(data['day_stem']['stem'], '己')
+        self.assertEqual(data['day_stem']['element'], '土')
+        self.assertEqual(data['day_stem']['yin_yang'], '陰')
+        self.assertIn('田畑', data['day_stem']['nature'])
+        self.assertTrue(data['rules_version'])
+        # 日干から見た5グループの関係と喜忌（身旺：食傷・財が喜、比劫・印が忌、官は中）
+        relations = {r['group']: r for r in data['element_relations']}
+        self.assertEqual([r['group'] for r in data['element_relations']], ['比劫', '印', '食傷', '財', '官'])
+        self.assertEqual(relations['印']['element'], '火')
+        self.assertEqual(relations['財']['element'], '水')
+        self.assertEqual(relations['印']['rank'], 1)
+        self.assertEqual({g: r['role'] for g, r in relations.items()},
+                         {'比劫': '忌', '印': '忌', '食傷': '喜', '財': '喜', '官': '中'})
+        self.assertNotIn('notable_facts', data)
+        self.assertNotIn('element_groups', data)
         self.assertEqual(data['pillars']['year']['stem'], '乙')
         self.assertEqual(data['pillars']['year']['stem_star'], '偏官')
         self.assertEqual(data['pillars']['day']['stem_star'], '日干')
@@ -129,13 +143,17 @@ class BuildInsightInputTests(TestCase):
         self.assertIsNone(data['context'])
         self.assertNotIn('inputs', data)
 
-    def test_notable_facts_for_ishikawa(self):
-        facts = svc.build_insight_input(self.calc)['notable_facts']
-        self.assertIn('傷官見官：時干の傷官（庚）と年干の偏官（乙）が天干に並ぶ', facts)
-        self.assertIn('財星がほぼない（財 2.5）', facts)
-        self.assertTrue(any(f.startswith('印が最も強い身旺') for f in facts))
-        self.assertTrue(any(f.startswith('食傷が強い') for f in facts))
-        self.assertFalse(any(f.startswith('官星がほぼない') for f in facts))
+    def test_applied_rules_for_ishikawa(self):
+        rules = svc.build_insight_input(self.calc)['applied_rules']
+        titles = [r['title'] for r in rules]
+        self.assertIn('傷官見官', titles)
+        self.assertIn('財星がほぼない', titles)
+        self.assertIn('印が最も強い身旺', titles)
+        self.assertIn('食傷が強い', titles)
+        self.assertNotIn('官星がほぼない', titles)
+        self.assertIn('財星がほぼない（財 2.5）', ' '.join(r['interpretation'] for r in rules))
+        # 石川さんには点数補正のあるルールは当たらない（基準ケースの点数を保つ）
+        self.assertTrue(all(r['effects'] == {} for r in rules))
 
     def test_hour_unknown_drops_hour_pillar(self):
         calc = create_ishikawa_calculation(
@@ -145,7 +163,7 @@ class BuildInsightInputTests(TestCase):
         self.assertIsNone(data['pillars']['hour'])
         self.assertTrue(data['hour_unknown'])
         # 時干の傷官がないので傷官見官は検出されない
-        self.assertFalse(any(f.startswith('傷官見官') for f in data['notable_facts']))
+        self.assertNotIn('傷官見官', [r['title'] for r in data['applied_rules']])
 
     def test_old_record_not_applicable(self):
         calc = create_ishikawa_calculation(self.user, five_elements_balance_data={})
@@ -168,7 +186,8 @@ class BuildInsightInputTests(TestCase):
         self.assertNotEqual(base, svc.compute_input_hash(data, 'v1', 'other'))
 
 
-class NotableFactsRuleTests(SimpleTestCase):
+class NotableRuleTests(SimpleTestCase):
+    """注記ルール（旧 skill_facts）が設定ファイルに移っても同じ条件で当たること"""
 
     def _detect(self, groups, label='身旺', stems=('', '', ''), day_stem='己'):
         pillars = {
@@ -177,7 +196,11 @@ class NotableFactsRuleTests(SimpleTestCase):
             'day_pillar': {'heavenly_stem': day_stem},
             'hour_pillar': {'heavenly_stem': stems[2]},
         }
-        return [f['id'] for f in detect_notable_facts(pillars, day_stem, groups, label)]
+        ctx = skill_rules.RuleContext(
+            day_stem=day_stem, strength_label=label, strength_diff=0, element_groups=groups,
+            star_points={}, stem_stars=skill_rules.collect_stem_stars(pillars, day_stem),
+        )
+        return [r['id'] for r in skill_rules.evaluate(ctx)]
 
     def test_shokan_with_seikan(self):
         # 己日干：庚=傷官、甲=正官
@@ -285,9 +308,18 @@ class ValidateContentTests(SimpleTestCase):
 class PromptTests(SimpleTestCase):
 
     def test_prompt_sections(self):
-        sections = svc.load_prompt('v1')
-        self.assertIn('点数・ランクは入力の値をそのまま', sections['system'])
-        self.assertIn('{{input_json}}', sections['user'])
+        for version in ('v1', 'v2'):
+            with self.subTest(version=version):
+                sections = svc.load_prompt(version)
+                self.assertIn('点数・ランクは入力の値をそのまま', sections['system'])
+                self.assertIn('{{input_json}}', sections['user'])
+
+    def test_system_prompt_includes_principles_from_rules_file(self):
+        system = svc.render_system_prompt('v2')
+        self.assertNotIn('{{', system)
+        first = skill_rules.load_rules().principles[0]
+        self.assertIn(f'1. {first}', system)
+        self.assertIn('日干を最重要の起点', system)
 
     def test_context_block_only_when_context(self):
         without = svc.render_user_prompt({'context': None, 'x': 1})
@@ -339,7 +371,7 @@ class SkillInsightApiTests(NoNetworkMixin, TestCase):
         insight = res.data['insight']
         self.assertFalse(insight['is_cached'])
         self.assertEqual(insight['model_name'], 'gemini-test-model')
-        self.assertEqual(insight['prompt_version'], 'v1')
+        self.assertEqual(insight['prompt_version'], svc.PROMPT_VERSION)
         self.assertEqual(len(insight['jobs']), 7)
         saved = SkillInsight.objects.get()
         self.assertEqual((saved.input_tokens, saved.output_tokens), (1200, 800))
@@ -373,6 +405,34 @@ class SkillInsightApiTests(NoNetworkMixin, TestCase):
         self.assertTrue(second.data['insight']['is_cached'])
         self.assertEqual(len(fake.calls), 1)
         self.assertEqual(SkillInsight.objects.count(), 1)
+
+    def test_get_returns_insight_matching_current_scores(self):
+        self.use_fake(self.ok())
+        self.client.post(self.url, {'regenerate': False}, format='json')
+        res = self.client.get(self.url)
+        self.assertIsNotNone(res.data['insight'])
+        self.assertEqual(res.data['insight']['summary'], '印と食傷が強い命式です。')
+
+    def test_get_hides_insight_when_rules_or_scores_changed(self):
+        self.use_fake(self.ok())
+        self.client.post(self.url, {'regenerate': False}, format='json')
+        # 解釈ルールの変更などで入力が変わった状態（保存済みの input_hash と一致しない）
+        SkillInsight.objects.update(input_hash='0' * 64)
+        res = self.client.get(self.url)
+        self.assertIsNone(res.data['insight'])
+
+    def test_get_ignores_insight_from_old_prompt_version(self):
+        self.use_fake(self.ok())
+        self.client.post(self.url, {'regenerate': False}, format='json')
+        SkillInsight.objects.update(prompt_version='v1')
+        self.assertIsNone(self.client.get(self.url).data['insight'])
+
+    def test_system_prompt_sent_to_gemini_has_principles(self):
+        fake = self.use_fake(self.ok())
+        self.client.post(self.url, {'regenerate': False}, format='json')
+        system = fake.calls[0]['config'].system_instruction
+        self.assertIn('日干を最重要の起点', system)
+        self.assertNotIn('{{principles}}', system)
 
     def test_regenerate_ignores_cache(self):
         fake = self.use_fake(self.ok(), self.ok())

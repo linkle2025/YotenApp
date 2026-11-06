@@ -325,7 +325,7 @@ class SkillInsightView(APIView):
 
     def get(self, request, pk):
         calculation = self._get_calculation(request, pk)
-        insight = insight_service.get_latest_insight(calculation)
+        insight = insight_service.get_current_insight(calculation)
         return Response({
             'insight': insight_service.insight_to_dict(insight, is_cached=True) if insight else None,
             'available': insight_service.is_available(),

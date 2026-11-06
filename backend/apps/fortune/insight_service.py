@@ -28,12 +28,12 @@ from pydantic import BaseModel
 from .calculators import get_heavenly_star, get_hidden_stems_full
 from .models import SkillInsight
 from .serializers import build_skill_sheet, pillars_from_calculation
-from .skill_facts import detect_notable_facts
+from . import skill_rules
 from .skill_sheet import ABILITIES, JOBS
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = 'v1'
+PROMPT_VERSION = 'v2'
 PROMPT_DIR = Path(__file__).resolve().parent / 'prompts'
 
 MAX_TEXT_LENGTH = 400
@@ -217,19 +217,25 @@ def build_insight_input(calculation, context=None, skill_sheet=None):
             continue
         pillar_input[label] = _pillar_input(pillars[key], day_stem, is_day=(key == 'day_pillar'))
 
-    element_groups = sheet['inputs']['element_groups']
-    facts = detect_notable_facts(
-        pillars, day_stem, element_groups, sheet['strength']['label'], hour_unknown
-    )
+    ruleset = skill_rules.load_rules()
+    strength_label = sheet['strength']['label']
 
+    # 日干を起点に読ませるため、日干の性質 → 日干から見た五行の関係 → 適用ルール の順で渡す
     return {
-        'day_stem': {'stem': day_stem, 'type': sheet.get('day_stem_type', '')},
+        'rules_version': sheet.get('rules_version', ruleset.fingerprint),
+        'day_stem': skill_rules.day_stem_info(day_stem, sheet.get('day_stem_type', ''), ruleset),
+        'strength': sheet['strength'],
+        'element_relations': skill_rules.element_relations(
+            day_stem, sheet['inputs']['element_groups'], strength_label, ruleset
+        ),
+        'kakukyoku': sheet['kakukyoku'],
         'pillars': pillar_input,
         'hour_unknown': hour_unknown,
-        'element_groups': element_groups,
         'star_points': sheet['inputs']['star_points'],
-        'strength': sheet['strength'],
-        'kakukyoku': sheet['kakukyoku'],
+        'applied_rules': [
+            {k: r[k] for k in ('title', 'interpretation', 'effects')}
+            for r in sheet.get('applied_rules', [])
+        ],
         'abilities': [
             {k: a[k] for k in ('key', 'name', 'meaning', 'score', 'breakdown')}
             for a in sheet['abilities']
@@ -238,7 +244,6 @@ def build_insight_input(calculation, context=None, skill_sheet=None):
             {k: j[k] for k in ('key', 'name', 'meaning', 'score', 'rank', 'weights')}
             for j in sheet['jobs']
         ],
-        'notable_facts': [f['text'] for f in facts],
         'context': validate_context(context),
     }
 
@@ -272,6 +277,13 @@ def load_prompt(version=PROMPT_VERSION):
         if name not in sections:
             raise RuntimeError(f'プロンプトに section: {name} がありません（{version}）')
     return sections
+
+
+def render_system_prompt(version=PROMPT_VERSION, ruleset=None):
+    """システム指示。{{principles}} を解釈ルール設定の principles（番号付き）に置き換える"""
+    ruleset = ruleset or skill_rules.load_rules()
+    principles = '\n'.join(f'{i}. {p}' for i, p in enumerate(ruleset.principles, 1))
+    return load_prompt(version)['system'].replace('{{principles}}', principles or '（なし）')
 
 
 def render_user_prompt(input_json, version=PROMPT_VERSION):
@@ -336,13 +348,13 @@ def call_gemini(input_json):
     """
     from google.genai import types
 
-    sections = load_prompt(PROMPT_VERSION)
+    system_prompt = render_system_prompt(PROMPT_VERSION)
     client = _get_client(settings.GEMINI_API_KEY, settings.GEMINI_TIMEOUT_SECONDS)
     response = client.models.generate_content(
         model=get_model_name(),
         contents=render_user_prompt(input_json),
         config=types.GenerateContentConfig(
-            system_instruction=sections['system'],
+            system_instruction=system_prompt,
             response_mime_type='application/json',
             response_schema=InsightResponse,
             temperature=GENERATION_TEMPERATURE,
@@ -420,8 +432,30 @@ def validate_content(content, skill_sheet):
 # 生成の全体フロー
 # ---------------------------------------------------------------------------
 
-def get_latest_insight(calculation):
-    return SkillInsight.objects.filter(calculation=calculation).first()
+def get_current_insight(calculation, skill_sheet=None, max_candidates=10):
+    """
+    今の鑑定スキル表と一致する入力で生成された判定の要点のうち、最新のものを返す
+
+    解釈ルールやプロンプトを変えて点数・入力が変わった場合、古い解説は点数と食い違うので返さない
+    （画面には生成ボタンが出て、新しい点数で生成し直せる）。
+    """
+    skill_sheet = skill_sheet or build_skill_sheet(calculation)
+    if skill_sheet is None:
+        return None
+    candidates = SkillInsight.objects.filter(
+        calculation=calculation, prompt_version=PROMPT_VERSION
+    )[:max_candidates]
+    inputs = {}
+    for insight in candidates:
+        key = json.dumps(insight.context, sort_keys=True, ensure_ascii=False)
+        if key not in inputs:
+            try:
+                inputs[key] = build_insight_input(calculation, context=insight.context, skill_sheet=skill_sheet)
+            except ValueError:
+                continue
+        if compute_input_hash(inputs[key], insight.prompt_version, insight.model_name) == insight.input_hash:
+            return insight
+    return None
 
 
 def count_today_generations(user):

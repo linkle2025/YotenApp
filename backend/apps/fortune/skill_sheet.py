@@ -7,16 +7,18 @@
 
 - Django 非依存の純粋関数のみで構成する。
 - 既存の計算ロジック（calculators.py）は参照のみ。
-- 用語・基礎点・重み・ランク帯はこのファイルの定数だけで調整できる。
-- 仕様: doc/鑑定スキル表.md
+- 用語・基礎点・重み・ランク帯はこのファイルの定数で調整する。
+- 日干と五行の関係による補正は、解釈ルール設定（rules/skill_rules.toml）の adjust で行う。
+- 仕様: doc/鑑定スキル表.md、doc/解釈ルール設定.md
 """
 
 from decimal import Decimal, ROUND_HALF_UP
 
+from . import skill_rules
 from .calculators import STEM_TO_ELEMENT, get_hidden_stems_full, get_heavenly_star
 
 
-SKILL_SHEET_VERSION = 'alpha-1'
+SKILL_SHEET_VERSION = 'alpha-2'
 
 # ---------------------------------------------------------------------------
 # 用語定数（表示順）
@@ -311,15 +313,38 @@ def calculate_ability_breakdowns(element_group_scores, star_points, strength_lab
     return breakdowns
 
 
-def calculate_ability_scores(element_group_scores, star_points, strength_label, kakukyoku):
-    """能力値（丸め・クランプ後の整数）を算出する"""
-    breakdowns = calculate_ability_breakdowns(
-        element_group_scores, star_points, strength_label, kakukyoku
-    )
+def scores_from_breakdowns(breakdowns):
+    """内訳の合計を丸め・クランプして能力値（整数）にする"""
     return {
         key: clamp_score(round_half_up(sum(item['value'] for item in items)))
         for key, items in breakdowns.items()
     }
+
+
+def calculate_ability_scores(element_group_scores, star_points, strength_label, kakukyoku):
+    """能力値（丸め・クランプ後の整数）を算出する。解釈ルールの補正は含まない"""
+    return scores_from_breakdowns(calculate_ability_breakdowns(
+        element_group_scores, star_points, strength_label, kakukyoku
+    ))
+
+
+def _sum_effects(adjustments, ability_names):
+    """ルールの補正量を能力名ごとに合計する（同じ能力への補正が複数あっても1つにまとめる）"""
+    effects = {}
+    for adj in adjustments:
+        if adj['value'] != 0:
+            name = ability_names[adj['ability']]
+            effects[name] = effects.get(name, 0) + adj['value']
+    return {name: float(value) for name, value in effects.items()}
+
+
+def apply_rule_adjustments(breakdowns, applied_rules):
+    """解釈ルールの補正を、ルール名を factor として内訳に追加する（breakdowns を直接更新）"""
+    for rule in applied_rules:
+        for adj in rule['adjustments']:
+            if adj['value'] != 0:
+                breakdowns[adj['ability']].append({'factor': rule['title'], 'value': adj['value']})
+    return breakdowns
 
 
 def _breakdown_for_json(items):
@@ -372,10 +397,23 @@ def calculate_skill_sheet(pillars, day_stem, five_element_scores, kakukyoku, hou
     breakdowns = calculate_ability_breakdowns(
         element_group_scores, star_points, strength_label, kakukyoku
     )
-    ability_scores = calculate_ability_scores(
-        element_group_scores, star_points, strength_label, kakukyoku
-    )
+
+    # 日干と五行の関係による補正（解釈ルール設定）
+    ruleset = skill_rules.load_rules()
+    applied_rules = skill_rules.evaluate(skill_rules.RuleContext(
+        day_stem=day_stem,
+        strength_label=strength_label,
+        strength_diff=diff,
+        element_groups=element_group_scores,
+        star_points=star_points,
+        kakukyoku=kakukyoku,
+        stem_stars=skill_rules.collect_stem_stars(pillars, day_stem, hour_unknown),
+    ), ruleset)
+    apply_rule_adjustments(breakdowns, applied_rules)
+
+    ability_scores = scores_from_breakdowns(breakdowns)
     job_scores = calculate_job_scores(ability_scores)
+    ability_names = {a['key']: a['name'] for a in ABILITIES}
 
     return {
         'version': SKILL_SHEET_VERSION,
@@ -399,6 +437,16 @@ def calculate_skill_sheet(pillars, day_stem, five_element_scores, kakukyoku, hou
             }
             for job in JOBS
         ],
+        'applied_rules': [
+            {
+                'id': rule['id'],
+                'title': rule['title'],
+                'interpretation': rule['interpretation'],
+                'effects': _sum_effects(rule['adjustments'], ability_names),
+            }
+            for rule in applied_rules
+        ],
+        'rules_version': ruleset.fingerprint,
         'inputs': {
             'element_groups': element_group_scores,
             'star_points': star_points,
