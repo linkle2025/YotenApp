@@ -5,7 +5,7 @@ import { authService } from '../services/authService';
 import './AdminPage.css';
 
 const AdminPage = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user: currentUser } = useAuth();
   const navigate = useNavigate();
   
   const [users, setUsers] = useState([]);
@@ -90,6 +90,49 @@ const AdminPage = () => {
     }
   };
 
+  const handleDelete = async (user) => {
+    setError('');
+    setMessage('');
+    const count = user.calculation_count || 0;
+    const lines = [
+      `ユーザー「${user.username}」を削除します。`,
+      count > 0
+        ? `このユーザーの鑑定記録 ${count} 件（判定の要点を含む）も一緒に削除されます。`
+        : 'このユーザーの鑑定記録はありません。',
+      '削除すると元に戻せません。よろしいですか？',
+      '',
+      '※ ログインだけ止めたい場合は、削除せずに「編集」で状態を無効にしてください。',
+    ];
+    if (!window.confirm(lines.join('\n'))) {
+      return;
+    }
+    try {
+      await authService.deleteAdminUser(user.id);
+      setMessage(`ユーザー「${user.username}」を削除しました。`);
+      if (editingUser === user.id) {
+        handleCancelEdit();
+      }
+      await loadUsers();
+    } catch (err) {
+      setError(err.response?.data?.error || 'ユーザーの削除に失敗しました。');
+    }
+  };
+
+  const formatDate = (value) => (value ? new Date(value).toLocaleDateString('ja-JP') : '—');
+
+  const formatDateTime = (value) => {
+    if (!value) {
+      return '—';
+    }
+    return new Date(value).toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   const getRoleLabel = (role) => {
     const roleMap = {
       'general': '一般ユーザー',
@@ -124,6 +167,7 @@ const AdminPage = () => {
               <th>ロール</th>
               <th>状態</th>
               <th>登録日</th>
+              <th>最終ログイン</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -170,8 +214,9 @@ const AdminPage = () => {
                         有効
                       </label>
                     </td>
-                    <td>{new Date(user.date_joined).toLocaleDateString('ja-JP')}</td>
-                    <td>
+                    <td>{formatDate(user.date_joined)}</td>
+                    <td className="nowrap">{formatDateTime(user.last_login)}</td>
+                    <td className="nowrap">
                       <button
                         onClick={() => handleSave(user.id)}
                         className="save-button"
@@ -197,14 +242,23 @@ const AdminPage = () => {
                         {user.is_active ? '有効' : '無効'}
                       </span>
                     </td>
-                    <td>{new Date(user.date_joined).toLocaleDateString('ja-JP')}</td>
-                    <td>
+                    <td>{formatDate(user.date_joined)}</td>
+                    <td className="nowrap">{formatDateTime(user.last_login)}</td>
+                    <td className="nowrap">
                       <button
                         onClick={() => handleEdit(user)}
                         className="edit-button"
                       >
                         編集
                       </button>
+                      {currentUser?.id !== user.id && (
+                        <button
+                          onClick={() => handleDelete(user)}
+                          className="delete-button"
+                        >
+                          削除
+                        </button>
+                      )}
                     </td>
                   </>
                 )}

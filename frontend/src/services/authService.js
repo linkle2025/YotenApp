@@ -112,5 +112,9 @@ export const authService = {
     const response = await api.patch(`/auth/admin/users/${userId}/`, userData);
     return response.data;
   },
+
+  async deleteAdminUser(userId) {
+    await api.delete(`/auth/admin/users/${userId}/`);
+  },
 };
 

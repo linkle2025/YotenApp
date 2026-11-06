@@ -6,6 +6,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.models import User
+from django.db.models import Count
 from django.contrib.auth import update_session_auth_hash
 from .serializers import (
     UserRegistrationSerializer, 
@@ -123,15 +124,24 @@ def admin_user_list(request):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    users = User.objects.all().select_related('profile')
+    users = (
+        User.objects.all()
+        .select_related('profile')
+        .annotate(calculation_count=Count('fortune_calculations'))
+        .order_by('id')
+    )
     serializer = AdminUserSerializer(users, many=True)
     return Response(serializer.data)
 
 
-@api_view(['GET', 'PATCH'])
+@api_view(['GET', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def admin_user_detail(request, user_id):
-    """管理者用：ユーザー詳細取得・更新"""
+    """管理者用：ユーザー詳細取得・更新・削除
+
+    DELETE はユーザーを完全に削除する（プロフィールと鑑定記録・判定の要点も一緒に消える）。
+    自分自身は削除できない（管理者が一人もいなくなるのを防ぐため）。
+    """
     if not is_admin(request.user):
         return Response(
             {'error': '管理者権限が必要です。'},
@@ -155,6 +165,14 @@ def admin_user_detail(request, user_id):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    elif request.method == 'DELETE':
+        if user.pk == request.user.pk:
+            return Response(
+                {'error': '自分自身のアカウントは削除できません。'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 PASSWORD_RESET_REQUEST_MESSAGE = (

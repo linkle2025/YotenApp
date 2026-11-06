@@ -149,10 +149,20 @@ class UserSerializer(serializers.ModelSerializer):
 class AdminUserSerializer(serializers.ModelSerializer):
     """管理者用ユーザーシリアライザー"""
     profile = AdminUserProfileSerializer(required=False)
-    
+    # 鑑定記録の件数（一覧では annotate 済みの値、詳細では都度数える）。削除の確認に使う
+    calculation_count = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'date_joined', 'is_active', 'profile')
+        fields = ('id', 'username', 'email', 'date_joined', 'last_login', 'is_active', 'profile',
+                  'calculation_count')
+        read_only_fields = ('date_joined', 'last_login')
+
+    def get_calculation_count(self, obj):
+        count = getattr(obj, 'calculation_count', None)
+        if count is None:
+            count = obj.fortune_calculations.count()
+        return count
     
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('profile', None)

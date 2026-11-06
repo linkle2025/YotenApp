@@ -254,6 +254,8 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
+    # ID・パスワードでログインしたときに User.last_login を更新する（ユーザー管理の「最終ログイン」）
+    'UPDATE_LAST_LOGIN': True,
 }
 
 # Security settings for production
