@@ -1,0 +1,54 @@
+# ---------------------------------------------------------------
+# リポジトリ全体の除外設定
+# 秘密の値・個人情報・生成物を Git に入れないためのもの
+# （backend/ と frontend/ にも個別の .gitignore があります）
+# ---------------------------------------------------------------
+
+# 環境変数（秘密の値）。例のファイル（*.example）だけは管理する
+.env
+.env.*
+!.env.example
+!.env.*.example
+!**/.env.example
+!**/.env.*.example
+
+# 鑑定事例などの個人情報（PDF・画像・表計算）
+# raw/ の参考資料（節入り時刻一覧.csv、十干の人物像.txt）は管理を続ける
+raw/*.pdf
+raw/*.png
+raw/*.jpg
+raw/*.jpeg
+raw/*.xlsx
+raw/*.docx
+
+# Node.js（新版：web/・packages/）
+node_modules/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+coverage/
+*.tsbuildinfo
+
+# Next.js・Vercel
+.next/
+out/
+.vercel/
+next-env.d.ts
+
+# Supabase（ローカル実行時の一時ファイル）
+supabase/.temp/
+supabase/.branches/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# エディタ・OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
