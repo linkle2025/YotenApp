@@ -4,13 +4,19 @@ Webブラウザおよびスマートフォンアプリで動作する四柱推�
 
 ## プロジェクト構成
 
+現在、サーバーレス版（Next.js＋Supabase＋Vercel）への作り直しを進めています。切り替えまでは、現行版（`backend/`・`frontend/`）が本番で動き続けます。
+
 ```
 YotenApp/
-├── backend/          # Django + Django REST Framework (API)
-├── frontend/         # React.js (Web UI)
-├── mobile/          # React Native (将来実装)
-└── doc/             # プロジェクトドキュメント
+├── 新仕様書/              # 新版の仕様（UXの5段階＋付録）。新版はこちらを正とする
+├── web/                  # 新版の画面（Next.js）
+├── packages/meishiki/    # 新版の計算ロジック（TypeScript）。現行の Python 版と自動で比較テスト
+├── backend/              # 現行版：Django + Django REST Framework (API)
+├── frontend/             # 現行版：React.js (Web UI)
+└── doc/                  # 現行版のドキュメント
 ```
+
+新版の開発はリポジトリのルートで `pnpm install` してから、`pnpm test`（全パッケージのテスト）で確認できます。詳しくは [web/README.md](./web/README.md) と [packages/meishiki/README.md](./packages/meishiki/README.md) を参照してください。
 
 ## 📚 ドキュメント
 

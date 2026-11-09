@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/*
+ * デザイントークン（新仕様書/05_表層.md）
+ * 画面では色コードを直接書かず、ここで定義した名前（bg-surface、text-muted など）だけを使う。
+ */
+:root {
+  --bg: #fbf8f3;
+  --surface: #ffffff;
+  --text: #1f1b16;
+  --text-muted: #5c554c;
+  --primary: #b4441f;
+  --primary-hover: #93361a;
+  --on-primary: #ffffff;
+  --accent: #1e3a5f;
+  --border: #e5ded3;
+  --danger: #b42318;
+  --success: #18794e;
+
+  /* 五行：文字（濃）と背景（淡） */
+  --wood: #2f6b2f;
+  --wood-tint: #e6f2e3;
+  --fire: #b3261e;
+  --fire-tint: #fce8e6;
+  --earth: #8a4b14;
+  --earth-tint: #f5eadb;
+  --metal: #5e6470;
+  --metal-tint: #eef0f3;
+  --water: #0b6a8f;
+  --water-tint: #e1f2f9;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-wood: var(--wood);
+  --color-wood-tint: var(--wood-tint);
+  --color-fire: var(--fire);
+  --color-fire-tint: var(--fire-tint);
+  --color-earth: var(--earth);
+  --color-earth-tint: var(--earth-tint);
+  --color-metal: var(--metal);
+  --color-metal-tint: var(--metal-tint);
+  --color-water: var(--water);
+  --color-water-tint: var(--water-tint);
+
+  --font-sans: var(--font-noto-sans-jp), system-ui, sans-serif;
+  --font-serif: var(--font-noto-serif-jp), serif;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+}
+
+/* ダークモードは段階2で配色を詰める（05_表層.md 5.3） */
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.8;
+}

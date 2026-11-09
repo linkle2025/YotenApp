@@ -1,0 +1,19 @@
+{
+  "name": "@yoten/meishiki",
+  "version": "0.1.0",
+  "private": true,
+  "description": "四柱推命の計算ロジック（命式・五行バランス・格局・大運）。仕様: 新仕様書/付録A_鑑定ロジック仕様.md",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0"
+  }
+}

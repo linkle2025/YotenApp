@@ -1,0 +1,8 @@
+packages:
+  - "web"
+  - "packages/*"
+
+# ネイティブのビルドが不要な依存（Next.js の画像最適化など）
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
