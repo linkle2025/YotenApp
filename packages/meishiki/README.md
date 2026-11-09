@@ -1,6 +1,6 @@
 # @yoten/meishiki（新版の計算ロジック）
 
-四柱推命の命式（四柱・蔵干・通変星・五行バランス・身旺身弱・格局・干合・大運）を計算する TypeScript のパッケージです。画面から独立していて、単体でテストできます。
+四柱推命の命式（四柱・蔵干・通変星・五行バランス・身旺身弱・格局・干合・大運）と、鑑定スキル表（解釈ルールの補正を含む）を計算する TypeScript のパッケージです。画面から独立していて、単体でテストできます。
 
 - 仕様：[新仕様書/付録A_鑑定ロジック仕様.md](../../新仕様書/付録A_鑑定ロジック仕様.md)
 - 現行の Python 版：`backend/apps/fortune/calculators.py`
@@ -14,7 +14,25 @@ const r = calculateMeishiki({
   gender: 'male',
 });
 r.pillars.day; // { stem: '己', branch: '酉', stemStar: '比肩', hidden: {...}, hiddenStars: {...} }
+
+const sheet = calculateSkillSheet(r);
+sheet.abilities; // 9能力の点数と内訳
+sheet.jobs;      // 7職種の点数とランク
+sheet.appliedRules; // 適用された解釈ルール（判定の要点の入力に使う）
 ```
+
+## 解釈ルール（rules/skill_rules.toml）
+
+書き方は [doc/解釈ルール設定.md](../../doc/解釈ルール設定.md) のとおりです（現行版と同じ書式）。
+
+- サーバーレス環境では実行時にファイルを読まないため、`src/rules.generated.ts` に文字列として書き出してビルドに同梱します。**書き換えたら次のコマンドを実行してください。** 実行し忘れると、テストが失敗して知らせます。
+
+  ```bash
+  pnpm --filter @yoten/meishiki generate:rules
+  ```
+
+- 現行版から切り替えるまでの間は、現行版の `backend/apps/fortune/rules/skill_rules.toml` と同じ内容に保ちます（違うとテストが失敗します）。
+- 点数の計算は、小数の誤差が出ないよう10進数で行います（`src/decimal.ts`。現行の Python の Decimal と同じ結果）。
 
 ## 現行版からの意図的な変更
 
@@ -43,15 +61,20 @@ pnpm typecheck   # tsc
 
 - `test/legacy-parity.test.ts`：現行の Python 版で計算した 11,395 件（全節入りの前後と乱数の日時）と比べる。意図的な変更に当たるケースを除き、すべて一致すること。
 - `test/meishiki.test.ts`：基準ケース、不具合の修正、オプション、入力チェック。
+- `test/skill-sheet.test.ts`：現行の Python 版で計算した鑑定スキル表 3,001 件と、点数・内訳・職種・適用ルール・解釈の文面まで比べる。基準ケースと鑑定事例（Sさん・Oさん）の期待値も現行のテストから引き継ぐ。
+- `test/skill-rules.test.ts`：解釈ルールの書式チェックと判定。
 
 比較用データは、現行版が動いている環境で次のコマンドで作り直せます（リポジトリのルートで）。
 
 ```bash
 docker compose exec -T backend python - < packages/meishiki/scripts/export_legacy_fixtures.py \
   | gzip -9 > packages/meishiki/test/fixtures/legacy.json.gz
+docker compose exec -T backend python - < packages/meishiki/scripts/export_legacy_skill_fixtures.py \
+  | gzip -9 > packages/meishiki/test/fixtures/legacy-skill.json.gz
 ```
+
+解釈ルールを書き換えたら、鑑定スキル表の比較用データ（`legacy-skill.json.gz`）も作り直してください（版が違うとテストが知らせます）。
 
 ## 今後移植するもの
 
-- 鑑定スキル表（`skill_sheet.py`）と解釈ルール（`skill_rules.py`・`skill_rules.toml`）
 - 奇門遁甲（管理者のみ）
