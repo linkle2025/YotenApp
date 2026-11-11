@@ -121,3 +121,12 @@ docker compose exec -T backend python - < packages/meishiki/scripts/export_legac
 `src/insight.ts`：AI に渡す入力の組み立て（`buildInsightInput`）、キャッシュ用のハッシュ（`computeInsightHash`）、プロンプト（`renderInsightSystemPrompt`・`renderInsightUserPrompt`）、構造化出力のスキーマ（`insightResponseSchema`）、応答の検証（`validateInsightContent`）。現行の `insight_service.py` と同じ形・同じ基準。
 
 プロンプトは `prompts/skill_insight_v2.md`（現行 backend のコピー。同じ内容かをテストで確かめる）。書き換えたら `pnpm --filter @yoten/meishiki generate:prompts` で `src/prompts.generated.ts` を作り直す。版を上げるときは新しいファイル（v3）を作り、`INSIGHT_PROMPT_VERSION` を変える。
+
+### 奇門遁甲の吉格
+
+凶格（`data/kimon/kyokaku.csv`）とは別に、陽てん塾の指定で吉格を判定する（`judgeKichikaku`、結果は各宮の `kichikaku`）。
+
+- 風遁：天盤に「乙」があり、三吉門（休・生・開）が巽宮（4）にある
+- 玉女守門：天盤に「丁」があり、直使と同じ宮にある
+
+天盤干が2つある宮は、どちらの干も天盤干として見る。

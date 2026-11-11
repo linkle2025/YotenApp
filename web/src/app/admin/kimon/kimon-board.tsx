@@ -96,6 +96,10 @@ export function KimonBoard({ board, compact = false, showGuides = true }: { boar
             ))}
           </p>
           <aside aria-label="八門・格局の参考" className="space-y-1 rounded-[var(--radius-md)] bg-bg p-3 text-xs">
+            <p>
+              <span className="rounded bg-water-tint px-1 font-bold text-water">青</span>：吉格（風遁＝巽宮に天盤の乙と三吉門、玉女守門＝天盤の丁が直使と同宮）
+              <span className="rounded bg-danger/10 px-1 text-danger">赤</span>：凶格
+            </p>
             <p>休：愛情、休息、安定　生：財、積極性　開：仕事、オープン</p>
             <p>傷：怪我、ギャンブル　杜：隠れる、閉じる　景：祝事、文書、華やか　死：停止　驚：トラブル、想定外</p>
             <p>風遁：放送・広報・宣伝活動に効果があることを実証済み</p>
@@ -165,10 +169,15 @@ function PalaceCell({
         <span className={`font-serif ${big}`}>{palace.isJunshuJiban ? `(${palace.jibanKan})` : palace.jibanKan}</span>
         <span className="text-muted">{palace.hasshin ? (HASSHIN_LABEL[palace.hasshin] ?? palace.hasshin) : ""}</span>
       </span>
-      {(palace.kyokaku.length > 0 || palace.score !== null) && (
+      {(palace.kyokaku.length > 0 || palace.kichikaku.length > 0 || palace.score !== null) && (
         <span className="flex flex-wrap items-center gap-1 text-xs">
+          {palace.kichikaku.map((k) => (
+            <span key={k} className="rounded bg-water-tint px-1 font-bold text-water" title="吉格">
+              {k}
+            </span>
+          ))}
           {palace.kyokaku.map((k) => (
-            <span key={k} className="rounded bg-danger/10 px-1 text-danger">
+            <span key={k} className="rounded bg-danger/10 px-1 text-danger" title="凶格">
               {k}
             </span>
           ))}

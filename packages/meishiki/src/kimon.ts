@@ -55,7 +55,7 @@ import {
 } from './kimonBoard';
 
 /** 奇門遁甲の計算ロジックの版。保存するときの再計算の目印 */
-export const KIMON_CALC_VERSION = 'kimon-0.1.0';
+export const KIMON_CALC_VERSION = 'kimon-0.2.0';
 
 /** 時盤の既定の場所（東京都。現行の既定「東京」と同じ） */
 export const KIMON_DEFAULT_PLACE = '13';
@@ -126,10 +126,37 @@ export interface KimonPalace {
   score: number | null;
   /** 凶格の名前（kyokaku.csv の行の順） */
   kyokaku: string[];
+  /** 吉格の名前（風遁・玉女守門。judgeKichikaku を参照） */
+  kichikaku: string[];
   /** 地盤干が旬首か（画面では括弧で囲む） */
   isJunshuJiban: boolean;
   /** 天盤干の1つ目が旬首か（画面では括弧で囲む） */
   isJunshuTenban: boolean;
+}
+
+/** 三吉門（休・生・開） */
+const SANKICHIMON: readonly Hachimon[] = ['休', '生', '開'];
+
+/**
+ * 吉格の判定（陽てん塾の指定による。凶格の kyokaku.csv とは別に、ここで決める）
+ * - 風遁：天盤に「乙」があり、三吉門（休・生・開）が巽宮（4）にある
+ * - 玉女守門：天盤に「丁」があり、直使（八門の直使）と同じ宮にある
+ * 天盤干が2つある宮（中宮の地盤干を添えた宮）は、どちらの干も天盤干として見る。
+ */
+export function judgeKichikaku(palace: {
+  position: PalacePosition;
+  tenbanKan: readonly string[];
+  hachimon: Hachimon | null;
+  chokushiPosition: PalacePosition;
+}): string[] {
+  const result: string[] = [];
+  if (palace.position === 4 && palace.tenbanKan.includes('乙') && palace.hachimon && SANKICHIMON.includes(palace.hachimon)) {
+    result.push('風遁');
+  }
+  if (palace.position === palace.chokushiPosition && palace.tenbanKan.includes('丁')) {
+    result.push('玉女守門');
+  }
+  return result;
 }
 
 export interface KimonResult {
@@ -321,6 +348,12 @@ export function calculateKimonTonkou(input: KimonInput): KimonResult {
     chugan: position === 9 ? layout.chugan : null,
     score: palaceScore(layout, position),
     kyokaku: kyokaku[position],
+    kichikaku: judgeKichikaku({
+      position,
+      tenbanKan: layout.tenban[position],
+      hachimon: layout.hachimon[position],
+      chokushiPosition: detail.chokushi.position,
+    }),
     isJunshuJiban: position === detail.junshuJibanPosition,
     isJunshuTenban: position === detail.junshuTenbanPosition,
   }));
