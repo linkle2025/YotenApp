@@ -26,6 +26,9 @@ select is((select display_name from public.profiles where id = '00000000-0000-00
 -- ---------------------------------------------------------------------------
 -- 会員A としてログイン
 -- ---------------------------------------------------------------------------
+-- 手元の DB に別の会員がいても通るよう、全体の件数を先に控えておく（RLS を通らない postgres として数える）
+select set_config('test.total_profiles', (select count(*)::text from public.profiles), true);
+
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-00000000000a","role":"authenticated"}', true);
 
@@ -63,7 +66,7 @@ select is(public.is_admin(), false, '会員は管理者ではない');
 -- ---------------------------------------------------------------------------
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000ad","role":"authenticated"}', true);
 
-select is((select count(*)::int from public.profiles), 3, '管理者は全員のプロフィールを見られる');
+select is((select count(*)::int from public.profiles), current_setting('test.total_profiles')::int, '管理者は全員のプロフィールを見られる');
 select is((select count(*)::int from public.readings), 0, '管理者でも他人の鑑定記録は見えない');
 select is((select reading_count::int from public.admin_list_users() where email = 'b@example.com'), 1,
   '会員一覧には鑑定記録の件数が出る');
