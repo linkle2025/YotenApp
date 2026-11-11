@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { calculateSkillSheet, getPrefecture, type MeishikiResult } from "@yoten/meishiki";
+import { calculateSkillSheet, getPrefecture } from "@yoten/meishiki";
 import { Notice } from "@/components/notice";
 import { FiveElements } from "@/components/reading/five-elements";
 import { PillarTable } from "@/components/reading/pillar-table";
@@ -15,6 +15,7 @@ import { requireUser } from "@/lib/auth";
 import { isInsightAvailable, insightConfig } from "@/lib/insight/config";
 import { countTodayGenerations, getCurrentInsight } from "@/lib/insight/service";
 import { getStars, getStems, stemImage } from "@/lib/master";
+import { currentResult } from "@/lib/readings";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "鑑定表" };
@@ -60,7 +61,7 @@ async function ReadingContent({
     .maybeSingle();
   if (!reading) notFound();
 
-  const result = reading.result as MeishikiResult;
+  const result = await currentResult({ ...reading, id: reading.id });
   const sheet = calculateSkillSheet(result);
   const available = isInsightAvailable();
   const [stems, stars, insight, used] = await Promise.all([

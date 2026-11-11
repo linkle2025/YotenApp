@@ -5,6 +5,7 @@ import type { MeishikiResult } from "@yoten/meishiki";
 import { Notice } from "@/components/notice";
 import { requireUser } from "@/lib/auth";
 import { getStems } from "@/lib/master";
+import { currentResult } from "@/lib/readings";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "ホーム" };
@@ -40,7 +41,11 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/home">[
   const supabase = await createClient();
   const [{ data: self }, { data: recent }, stems] = await Promise.all([
     user.selfReadingId
-      ? supabase.from("readings").select("id, result").eq("id", user.selfReadingId).maybeSingle()
+      ? supabase
+          .from("readings")
+          .select("id, result, birth_date, birth_time, hour_unknown, birth_place, gender")
+          .eq("id", user.selfReadingId)
+          .maybeSingle()
       : Promise.resolve({ data: null }),
     supabase
       .from("readings")
@@ -50,7 +55,7 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/home">[
       .limit(5),
     getStems(),
   ]);
-  const result = self?.result as MeishikiResult | undefined;
+  const result: MeishikiResult | undefined = self ? await currentResult(self) : undefined;
   const stem = result ? stems.find((s) => s.name === result.dayStem) : undefined;
 
   return (
