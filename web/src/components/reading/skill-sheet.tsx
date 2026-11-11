@@ -1,4 +1,4 @@
-import type { SkillSheet } from "@yoten/meishiki";
+import type { InsightContent, SkillSheet } from "@yoten/meishiki";
 import { formatScore } from "./elements";
 
 /** ランクの印（S〜D）。上位ほど濃い色にし、文字でも示す */
@@ -29,7 +29,9 @@ function Bar({ score }: { score: number }) {
 }
 
 /** 鑑定スキル表（F-05）：職種・能力を点数の高い順に。能力は内訳を開ける */
-export function SkillSheetView({ sheet }: { sheet: SkillSheet }) {
+export function SkillSheetView({ sheet, insight }: { sheet: SkillSheet; insight?: InsightContent | null }) {
+  const jobText = new Map(insight?.jobs.map((j) => [j.key, j.text]));
+  const abilityText = new Map(insight?.abilities.map((a) => [a.key, a.text]));
   const jobs = [...sheet.jobs].sort((a, b) => b.score - a.score);
   const abilities = [...sheet.abilities].sort((a, b) => b.score - a.score);
   const abilityName = new Map(sheet.abilities.map((a) => [a.key, a.name]));
@@ -63,6 +65,9 @@ export function SkillSheetView({ sheet }: { sheet: SkillSheet }) {
                     .join("＋")}
                   ）
                 </p>
+                {jobText.get(job.key) && (
+                  <p className="mt-1 rounded-[var(--radius-sm)] bg-bg px-2 py-1.5 text-sm leading-relaxed">{jobText.get(job.key)}</p>
+                )}
               </div>
             </li>
           ))}
@@ -85,6 +90,7 @@ export function SkillSheetView({ sheet }: { sheet: SkillSheet }) {
                   </span>
                   <Bar score={a.score} />
                   <span className="mt-1 block text-xs text-muted">{a.meaning}</span>
+                  {abilityText.get(a.key) && <span className="mt-2 block text-xs leading-relaxed">{abilityText.get(a.key)}</span>}
                 </summary>
                 <table className="mt-2 w-full text-xs">
                   <caption className="sr-only">{a.name}の内訳</caption>

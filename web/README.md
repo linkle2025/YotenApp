@@ -62,6 +62,13 @@ pnpm lint
 - 計算結果は画面から書き込めない（RLS）。サーバーで `@yoten/meishiki` で計算し、Secret key で保存する（`src/app/(member)/actions.ts`）。
 - メールのリンクは `token_hash` 方式と `code` 方式の両方に対応（`src/app/auth/confirm/route.ts`）。Supabase の標準の文面は `code` 方式で、申し込んだのと同じブラウザで開く必要がある。
 
+### 判定の要点（AI の解説）
+
+- 鑑定表の「判定の要点をつくる」で、Gemini が点数の根拠を説明する（`src/lib/insight/`、プロンプトと検証は `@yoten/meishiki` の `insight.ts`）。
+- 同じ入力（スキル表・解釈ルール・プロンプトの版・モデル）の解説は保存して使い回す。入力が変わったら古い解説は出さない。
+- 1人1日の上限（既定20回）。失敗した分は数えない。AI には氏名・生年月日・出生時刻・出生地を送らない。
+- Vercel の環境変数 `GEMINI_API_KEY`（Secret）と `GEMINI_PAID_TIER_CONFIRMED=true` がそろうまで、画面には「現在、判定の要点はつくれません」と出る。
+
 ## デプロイ
 
 Vercel のプロジェクト（`yoten-app`）の起点（Root Directory）を `web` にしています。

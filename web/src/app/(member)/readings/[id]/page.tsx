@@ -7,14 +7,20 @@ import { Notice } from "@/components/notice";
 import { FiveElements } from "@/components/reading/five-elements";
 import { PillarTable } from "@/components/reading/pillar-table";
 import { ExplainProvider, ExplainTrigger } from "@/components/reading/explain-panel";
+import { InsightPanel } from "@/components/reading/insight-panel";
 import { ReadingActions } from "@/components/reading/reading-actions";
 import { SkillSheetView } from "@/components/reading/skill-sheet";
 import Image from "next/image";
 import { requireUser } from "@/lib/auth";
+import { isInsightAvailable, insightConfig } from "@/lib/insight/config";
+import { countTodayGenerations, getCurrentInsight } from "@/lib/insight/service";
 import { getStars, getStems, stemImage } from "@/lib/master";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "鑑定表" };
+
+/** 判定の要点の生成（Server Action）は、AI の応答を待つので長めにする（再試行を含めて最大80秒ほど） */
+export const maxDuration = 120;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -41,7 +47,7 @@ async function ReadingContent({
   searchParams: PageProps<"/readings/[id]">["searchParams"];
 }) {
   const { id } = await params;
-  await requireUser(`/readings/${id}`);
+  const user = await requireUser(`/readings/${id}`);
   if (!UUID_RE.test(id)) notFound();
   const { notice } = await searchParams;
 
@@ -56,7 +62,14 @@ async function ReadingContent({
 
   const result = reading.result as MeishikiResult;
   const sheet = calculateSkillSheet(result);
-  const [stems, stars] = await Promise.all([getStems(), getStars()]);
+  const available = isInsightAvailable();
+  const [stems, stars, insight, used] = await Promise.all([
+    getStems(),
+    getStars(),
+    getCurrentInsight(reading.id, result, sheet),
+    available ? countTodayGenerations(user.id) : Promise.resolve(0),
+  ]);
+  const remaining = Math.max(0, insightConfig().dailyLimit - used);
   const stem = stems.find((s) => s.name === result.dayStem);
 
   const title = reading.name ? `${reading.name}さん` : "無題の鑑定";
@@ -137,16 +150,16 @@ async function ReadingContent({
             <h2 id="summary-title" className={sectionTitle}>
               ひとことで
             </h2>
-            <p className="mt-2 text-sm text-muted">
-              点数とランクの根拠を、AI が日干を起点に説明する「判定の要点」は、次の段階で追加します。
-            </p>
+            <div className="mt-3">
+              <InsightPanel readingId={reading.id} available={available} insight={insight} remaining={remaining} />
+            </div>
           </section>
           <section id="skill" className={`${card} scroll-mt-16`} aria-labelledby="skill-title">
             <h2 id="skill-title" className={sectionTitle}>
               鑑定スキル表
             </h2>
             <div className="mt-4">
-              <SkillSheetView sheet={sheet} />
+              <SkillSheetView sheet={sheet} insight={insight} />
             </div>
           </section>
         </div>
