@@ -1,5 +1,5 @@
 import "server-only";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export type Role = "general" | "fortuneteller" | "admin";
@@ -43,5 +43,15 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 export async function requireUser(currentPath: string): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(currentPath)}`);
+  return user;
+}
+
+/**
+ * 管理者の画面用：管理者でなければ「見つからない」にする（管理区域があること自体を見せない）
+ * 本当の判定はデータベース側（is_admin()・RLS）でも行う。
+ */
+export async function requireAdmin(currentPath: string): Promise<CurrentUser> {
+  const user = await requireUser(currentPath);
+  if (user.role !== "admin") notFound();
   return user;
 }

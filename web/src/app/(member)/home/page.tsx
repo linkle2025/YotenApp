@@ -43,6 +43,12 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/home">[
   const { data: stem } = result
     ? await supabase.from("stems").select("element_type").eq("name", result.dayStem).maybeSingle()
     : { data: null };
+  const { data: recent } = await supabase
+    .from("readings")
+    .select("id, name, created_at, result->>dayStem")
+    .eq("is_self", false)
+    .order("created_at", { ascending: false })
+    .limit(5);
 
   return (
     <div className="space-y-6">
@@ -104,6 +110,42 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/home">[
               入力する
             </Link>
           </>
+        )}
+      </section>
+
+      <Link
+        href="/readings/new"
+        className="flex min-h-12 items-center justify-center rounded-[var(--radius-md)] border-2 border-primary bg-surface font-bold text-primary hover:bg-bg"
+      >
+        ＋ 新しい命式をつくる
+      </Link>
+
+      <section aria-labelledby="recent-title">
+        <div className="flex items-baseline justify-between">
+          <h2 id="recent-title" className="text-lg font-bold">
+            最近の記録
+          </h2>
+          <Link href="/readings" className="text-sm text-accent underline">
+            すべて見る
+          </Link>
+        </div>
+        {recent && recent.length > 0 ? (
+          <ul className="mt-2 divide-y divide-border overflow-hidden rounded-[var(--radius-md)] border border-border bg-surface">
+            {recent.map((r) => {
+              const row = r as unknown as { id: string; name: string | null; created_at: string; dayStem: string };
+              return (
+                <li key={row.id}>
+                  <Link href={`/readings/${row.id}`} className="flex min-h-12 items-center gap-3 px-4 hover:bg-bg">
+                    <span className="font-serif text-lg font-bold">{row.dayStem}</span>
+                    <span className="flex-1 truncate">{row.name ? `${row.name}さん` : "無題の鑑定"}</span>
+                    <span aria-hidden>›</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="mt-2 text-sm text-muted">まだ記録がありません。家族や社員の命式をつくってみましょう。</p>
         )}
       </section>
     </div>

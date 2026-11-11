@@ -6,9 +6,12 @@ import { calculateSkillSheet, getPrefecture, type MeishikiResult } from "@yoten/
 import { Notice } from "@/components/notice";
 import { FiveElements } from "@/components/reading/five-elements";
 import { PillarTable } from "@/components/reading/pillar-table";
+import { ExplainProvider, ExplainTrigger } from "@/components/reading/explain-panel";
 import { ReadingActions } from "@/components/reading/reading-actions";
 import { SkillSheetView } from "@/components/reading/skill-sheet";
+import Image from "next/image";
 import { requireUser } from "@/lib/auth";
+import { getStars, getStems, stemImage } from "@/lib/master";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "鑑定表" };
@@ -53,11 +56,8 @@ async function ReadingContent({
 
   const result = reading.result as MeishikiResult;
   const sheet = calculateSkillSheet(result);
-  const { data: stem } = await supabase
-    .from("stems")
-    .select("reading, element_type")
-    .eq("name", result.dayStem)
-    .maybeSingle();
+  const [stems, stars] = await Promise.all([getStems(), getStars()]);
+  const stem = stems.find((s) => s.name === result.dayStem);
 
   const title = reading.name ? `${reading.name}さん` : "無題の鑑定";
   const [y, m, d] = reading.birth_date.split("-").map(Number);
@@ -72,13 +72,14 @@ async function ReadingContent({
   const card = "rounded-[var(--radius-md)] border border-border bg-surface p-4 shadow-sm sm:p-5";
 
   return (
+    <ExplainProvider stems={stems} stars={stars}>
     <div className="space-y-5">
       {typeof notice === "string" && NOTICES[notice] && <Notice>{NOTICES[notice]}</Notice>}
 
       {/* 見出し（F-04-1） */}
       <header className="space-y-3">
-        <Link href="/home" className="text-sm text-accent underline-offset-2 hover:underline print:hidden">
-          ← ホーム
+        <Link href="/readings" className="text-sm text-accent underline-offset-2 hover:underline print:hidden">
+          ← 記録
         </Link>
         <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
           <h1 className="font-serif text-2xl font-bold">
@@ -86,8 +87,11 @@ async function ReadingContent({
             {reading.is_self && <span className="ml-2 align-middle text-sm font-normal text-muted">（あなた）</span>}
           </h1>
         </div>
-        <p className="flex flex-wrap items-baseline gap-x-2">
-          <span className="font-serif text-4xl font-bold">{result.dayStem}</span>
+        <p className="flex flex-wrap items-center gap-x-2">
+          {stem && <Image src={stemImage(stem.slug)} alt="" width={64} height={64} className="size-16" priority />}
+          <ExplainTrigger kind="stem" name={result.dayStem}>
+            <span className="font-serif text-4xl font-bold">{result.dayStem}</span>
+          </ExplainTrigger>
           {stem && (
             <span className="text-muted">
               （{stem.reading}）・{stem.element_type}
@@ -172,6 +176,7 @@ async function ReadingContent({
         計算ロジック {result.calcVersion}・スキル表 {sheet.version}・解釈ルール {sheet.rulesVersion}
       </p>
     </div>
+    </ExplainProvider>
   );
 }
 

@@ -36,7 +36,7 @@ export function ProfileForm({
         error={state.fieldErrors?.displayName}
       />
       <BirthFields prefectures={prefectures} maxYear={maxYear} defaults={defaults} errors={state.fieldErrors} />
-      <SubmitButton>保存して命式をつくる</SubmitButton>
+      <SubmitButton pendingLabel="計算しています…">保存して命式をつくる</SubmitButton>
       {allowSkip && (
         <p className="text-center text-sm">
           <Link href="/home" className="text-accent underline">

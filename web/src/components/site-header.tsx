@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { BottomTabs } from "@/components/bottom-tabs";
 import { getCurrentUser } from "@/lib/auth";
 
 /** ヘッダー：ロゴは静的に出し、ログイン状態の部分だけ後から流し込む */
@@ -35,14 +36,30 @@ async function UserNav() {
       </nav>
     );
   }
+  const link = "hidden hover:underline md:inline";
   return (
-    <nav className="flex items-center gap-4 text-sm">
-      <Link href="/home" className="hover:underline">
-        ホーム
-      </Link>
-      <Link href="/me" className="hover:underline">
-        マイページ
-      </Link>
-    </nav>
+    <>
+      <nav className="flex items-center gap-4 text-sm">
+        <Link href="/home" className={link}>
+          ホーム
+        </Link>
+        <Link href="/readings/new" className={link}>
+          つくる
+        </Link>
+        <Link href="/readings" className={link}>
+          記録
+        </Link>
+        <Link href="/me" className={link}>
+          マイページ
+        </Link>
+        {user.role === "admin" && (
+          <Link href="/admin/users" className="rounded-[var(--radius-sm)] border border-border px-2 py-1 hover:bg-bg">
+            管理
+          </Link>
+        )}
+        <span className="text-muted md:hidden">{user.displayName || "会員"}さん</span>
+      </nav>
+      <BottomTabs />
+    </>
   );
 }

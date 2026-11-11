@@ -44,6 +44,20 @@ pnpm lint
 | `/home` | 本人の命式の要約。未入力ならプロフィール入力へ誘導 |
 | `/me`・`/me/profile`・`/me/password`・`/me/delete` | マイページ・プロフィール（本人の命式を計算して保存）・パスワード変更（今のパスワードを確認）・退会（データをすべて削除） |
 
+### 鑑定・解説・管理の画面
+
+| 画面 | 内容 |
+|---|---|
+| `/readings/new` | 命式をつくる（氏名は任意）。サーバーで計算して保存し、鑑定表へ |
+| `/readings` | 鑑定記録の一覧。氏名検索・お気に入り・並べ替え・続きを表示。削除は5秒間「元に戻す」 |
+| `/readings/[id]` | 鑑定表（命式・五行バランス・鑑定スキル表）。天干・通変星を押すと解説のパネル |
+| `/jikkan`・`/tsuhensei`（と各 `/[slug]`） | 十干・通変星の解説。ログイン不要・事前生成（`src/lib/master.ts` で1日キャッシュ） |
+| `/admin/users` | 管理者だけ。会員の一覧・ロール変更・利用停止・削除（自分自身は不可） |
+| `/admin/kimon` | 管理者だけ。奇門遁甲の時盤・日盤・1日分（計算は `@yoten/meishiki` の `calculateKimonTonkou`） |
+
+- 管理者でない人が `/admin` を開くと「見つからない」になる（`requireAdmin()`）。最初の管理者は、Supabase の SQL で `profiles.role` を `admin` にする。
+- 十干の画像は旧版から引き継いだもの（`public/img/stems/{slug}.png`）。
+
 - ログインの判定：`src/proxy.ts` がログインの期限を延ばし、未ログインで会員の画面を開いたらログインへ送る。各画面でも `requireUser()`（`src/lib/auth.ts`）で確かめる。
 - 計算結果は画面から書き込めない（RLS）。サーバーで `@yoten/meishiki` で計算し、Secret key で保存する（`src/app/(member)/actions.ts`）。
 - メールのリンクは `token_hash` 方式と `code` 方式の両方に対応（`src/app/auth/confirm/route.ts`）。Supabase の標準の文面は `code` 方式で、申し込んだのと同じブラウザで開く必要がある。

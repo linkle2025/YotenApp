@@ -17,7 +17,15 @@ export type FormState = {
 export const initialFormState: FormState = {};
 
 /** 送信ボタン：送信中は押せなくし、くるくる回る印を出す（04_骨格 4.2） */
-export function SubmitButton({ children, variant = "primary" }: { children: ReactNode; variant?: "primary" | "danger" }) {
+export function SubmitButton({
+  children,
+  variant = "primary",
+  pendingLabel = "送信中…",
+}: {
+  children: ReactNode;
+  variant?: "primary" | "danger";
+  pendingLabel?: string;
+}) {
   const { pending } = useFormStatus();
   const color =
     variant === "danger"
@@ -36,7 +44,7 @@ export function SubmitButton({ children, variant = "primary" }: { children: Reac
           className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
         />
       )}
-      {pending ? "送信中…" : children}
+      {pending ? pendingLabel : children}
     </button>
   );
 }

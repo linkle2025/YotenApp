@@ -122,3 +122,8 @@ export function fromReadingColumns(row: {
     gender: row.gender,
   };
 }
+
+/** 今の日本時間（年月日・時を UTC の値として持つ Date）。画面の既定値に使う */
+export function japanNow(): Date {
+  return new Date(Date.now() + 9 * 60 * 60 * 1000);
+}

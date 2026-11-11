@@ -37,6 +37,14 @@ async function MyPageContent({ searchParams }: { searchParams: PageProps<"/me">[
           パスワードの変更<span aria-hidden>›</span>
         </Link>
       </nav>
+      <nav className="divide-y divide-border overflow-hidden rounded-[var(--radius-md)] border border-border bg-surface">
+        <Link href="/jikkan" className={item}>
+          十干の解説<span aria-hidden>›</span>
+        </Link>
+        <Link href="/tsuhensei" className={item}>
+          通変星の解説<span aria-hidden>›</span>
+        </Link>
+      </nav>
       <form action={signOut}>
         <button
           type="submit"

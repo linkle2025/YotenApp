@@ -1,5 +1,6 @@
 import type { MeishikiResult, Pillar } from "@yoten/meishiki";
 import { ELEMENT_INFO, branchElement, stemElement } from "./elements";
+import { ExplainTrigger } from "./explain-panel";
 
 const COLUMNS = [
   { key: "hour", label: "時柱" },
@@ -32,10 +33,22 @@ export function PillarTable({ result }: { result: MeishikiResult }) {
         </thead>
         <tbody>
           <Row label="通変星" pillars={pillars} cell={cell} head={head}>
-            {(p, key) => (key === "day" ? <span className="text-muted">日干</span> : p.stemStar)}
+            {(p, key) =>
+              key === "day" ? (
+                <span className="text-muted">日干</span>
+              ) : (
+                <ExplainTrigger kind="star" name={p.stemStar}>
+                  {p.stemStar}
+                </ExplainTrigger>
+              )
+            }
           </Row>
           <Row label="天干" pillars={pillars} cell={cell} head={head}>
-            {(p) => <Char value={p.stem} element={stemElement(p.stem)} />}
+            {(p) => (
+              <ExplainTrigger kind="stem" name={p.stem}>
+                <Char value={p.stem} element={stemElement(p.stem)} />
+              </ExplainTrigger>
+            )}
           </Row>
           <Row label="地支" pillars={pillars} cell={cell} head={head}>
             {(p) => <Char value={p.branch} element={branchElement(p.branch)} />}
@@ -105,7 +118,11 @@ function Hidden({ stem, star }: { stem: string; star: string | null }) {
   return (
     <span className="flex flex-col items-center leading-tight">
       <span className={`font-serif text-lg ${ELEMENT_INFO[stemElement(stem)].text}`}>{stem}</span>
-      {star && <span className="text-xs text-muted">{star}</span>}
+      {star && (
+        <ExplainTrigger kind="star" name={star} className="text-xs text-muted">
+          {star}
+        </ExplainTrigger>
+      )}
     </span>
   );
 }
