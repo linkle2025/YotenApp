@@ -16,9 +16,8 @@ export type BirthValues = {
   gender?: string;
 };
 
-/** 計算できる範囲（節入りのデータがある範囲：付録A） */
+/** 選べる最初の年（節入りのデータがある範囲：付録A） */
 const FIRST_YEAR = 1901;
-const LAST_YEAR = 2040;
 
 /** 地方ごとの区切り（JIS の都道府県コードの範囲） */
 const REGIONS: { label: string; from: number; to: number }[] = [
@@ -46,8 +45,11 @@ export function BirthFields({
   prefectures,
   defaults = {},
   errors = {},
+  maxYear,
 }: {
   prefectures: PrefectureOption[];
+  /** 選べる最後の年（来年まで。サーバーで決めて渡す：lib/birth.ts の maxBirthYear） */
+  maxYear: number;
   defaults?: BirthValues;
   errors?: Record<string, string>;
 }) {
@@ -79,7 +81,7 @@ export function BirthFields({
               className={select(Boolean(errors.date))}
             >
               <option value="">年</option>
-              {range(FIRST_YEAR, LAST_YEAR)
+              {range(FIRST_YEAR, maxYear)
                 .reverse()
                 .map((y) => (
                   <option key={y} value={y}>
@@ -123,7 +125,7 @@ export function BirthFields({
             </select>
           </label>
         </div>
-        <FieldFooter id={`${id}-date`} hint={`${FIRST_YEAR}年1月6日〜${LAST_YEAR}年12月31日の間で選べます。`} error={errors.date} />
+        <FieldFooter id={`${id}-date`} hint={`${FIRST_YEAR}年1月6日〜${maxYear}年12月31日の間で選べます。`} error={errors.date} />
       </fieldset>
 
       <fieldset>

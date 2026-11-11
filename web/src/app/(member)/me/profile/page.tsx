@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PREFECTURES } from "@yoten/meishiki";
 import { requireUser } from "@/lib/auth";
-import { fromReadingColumns } from "@/lib/birth";
+import { fromReadingColumns, maxBirthYear } from "@/lib/birth";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileForm } from "./profile-form";
 
@@ -47,6 +47,7 @@ async function ProfileContent({ searchParams }: { searchParams: PageProps<"/me/p
           displayName={user.displayName}
           birth={self ? fromReadingColumns(self) : undefined}
           allowSkip={isWelcome}
+          maxYear={maxBirthYear()}
         />
       </div>
       <p className="mt-4 text-sm text-muted">

@@ -7,6 +7,15 @@ export type ParsedBirth =
   | { ok: true; input: MeishikiInput; values: BirthValues }
   | { ok: false; fieldErrors: Record<string, string>; values: BirthValues };
 
+/**
+ * 選べる最後の年：来年まで（生まれる予定の子どもも見られるように）
+ * 計算ロジック自体は2040年まで対応しているが、それより先の年は選択肢に出さない。日本時間で数える。
+ */
+export function maxBirthYear(now = new Date()): number {
+  const japanYear = new Date(now.getTime() + 9 * 60 * 60 * 1000).getUTCFullYear();
+  return Math.min(japanYear + 1, 2040);
+}
+
 const int = (s: string) => (/^\d+$/.test(s) ? Number(s) : NaN);
 
 /** フォームの生年月日などを読み、計算ロジックの入力にする。誤りは項目ごとに返す */
@@ -32,7 +41,10 @@ export function parseBirth(formData: FormData): ParsedBirth {
     fieldErrors.date = "存在しない日付です。";
   } else {
     const key = year * 10000 + month * 100 + day;
-    if (key < 19010106 || key > 20401231) fieldErrors.date = "1901年1月6日〜2040年12月31日の間で選んでください。";
+    const maxYear = maxBirthYear();
+    if (key < 19010106 || key > maxYear * 10000 + 1231) {
+      fieldErrors.date = `1901年1月6日〜${maxYear}年12月31日の間で選んでください。`;
+    }
   }
 
   let hour: number | undefined;

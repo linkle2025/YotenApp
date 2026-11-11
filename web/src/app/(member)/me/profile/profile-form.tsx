@@ -11,11 +11,13 @@ export function ProfileForm({
   displayName,
   birth,
   allowSkip,
+  maxYear,
 }: {
   prefectures: PrefectureOption[];
   displayName: string;
   birth?: BirthValues;
   allowSkip: boolean;
+  maxYear: number;
 }) {
   const [state, action] = useActionState(saveProfile, initialFormState);
   const v = state.values;
@@ -33,7 +35,7 @@ export function ProfileForm({
         defaultValue={v?.displayName ?? displayName}
         error={state.fieldErrors?.displayName}
       />
-      <BirthFields prefectures={prefectures} defaults={defaults} errors={state.fieldErrors} />
+      <BirthFields prefectures={prefectures} maxYear={maxYear} defaults={defaults} errors={state.fieldErrors} />
       <SubmitButton>保存して命式をつくる</SubmitButton>
       {allowSkip && (
         <p className="text-center text-sm">
