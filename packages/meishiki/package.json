@@ -11,7 +11,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "generate:rules": "node scripts/generate-rules.mjs",
-    "generate:kimon": "node scripts/generate-kimon-data.mjs"
+    "generate:kimon": "node scripts/generate-kimon-data.mjs",
+    "generate:prompts": "node scripts/generate-prompts.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",

@@ -38,3 +38,4 @@ export {
   type KyokusuEntry,
   type KyokakuRule,
 } from './kimonData';
+export * from './insight';

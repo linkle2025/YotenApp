@@ -115,3 +115,9 @@ docker compose exec -T backend python - < packages/meishiki/scripts/export_legac
 
 解釈ルールを書き換えたら、鑑定スキル表の比較用データ（`legacy-skill.json.gz`）も作り直してください（版が違うとテストが知らせます）。
 
+
+## 判定の要点（AI 解説）の中心部分
+
+`src/insight.ts`：AI に渡す入力の組み立て（`buildInsightInput`）、キャッシュ用のハッシュ（`computeInsightHash`）、プロンプト（`renderInsightSystemPrompt`・`renderInsightUserPrompt`）、構造化出力のスキーマ（`insightResponseSchema`）、応答の検証（`validateInsightContent`）。現行の `insight_service.py` と同じ形・同じ基準。
+
+プロンプトは `prompts/skill_insight_v2.md`（現行 backend のコピー。同じ内容かをテストで確かめる）。書き換えたら `pnpm --filter @yoten/meishiki generate:prompts` で `src/prompts.generated.ts` を作り直す。版を上げるときは新しいファイル（v3）を作り、`INSIGHT_PROMPT_VERSION` を変える。
