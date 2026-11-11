@@ -75,7 +75,7 @@ export async function saveProfile(_prev: FormState, formData: FormData): Promise
     if (error) return { message: "保存できませんでした。時間をおいて、もう一度お試しください。", values };
   }
 
-  redirect("/home?notice=profile-saved");
+  redirect(`/readings/${readingId}?notice=profile-saved`);
 }
 
 /** パスワードの変更：今のパスワードを確かめてから変える（付録B B.3-2） */

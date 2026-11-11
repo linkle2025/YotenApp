@@ -11,6 +11,7 @@ export const metadata: Metadata = { title: "ホーム" };
 const NOTICES: Record<string, string> = {
   "profile-saved": "プロフィールを保存し、あなたの命式をつくりました。",
   "password-updated": "パスワードを変更しました。",
+  "reading-deleted": "鑑定記録を削除しました。",
 };
 
 const COLUMNS = [
@@ -83,8 +84,13 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/home">[
                 </tr>
               </tbody>
             </table>
-            <p className="mt-4 text-sm text-muted">鑑定表（スキル表・判定の要点）の画面は、次の段階で作ります。</p>
-            <Link href="/me/profile" className="mt-2 inline-block text-sm text-accent underline">
+            <Link
+              href={`/readings/${self!.id}`}
+              className="mt-4 flex min-h-12 items-center justify-center rounded-[var(--radius-md)] bg-primary font-bold text-on-primary hover:bg-primary-hover"
+            >
+              鑑定表を見る
+            </Link>
+            <Link href="/me/profile" className="mt-3 inline-block text-sm text-accent underline">
               生年月日などを直す
             </Link>
           </>
