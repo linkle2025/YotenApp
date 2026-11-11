@@ -3,7 +3,7 @@
 -- 仕様: 新仕様書/03_構造.md 3.5・3.7
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(25);
+select plan(29);
 
 -- ---------------------------------------------------------------------------
 -- 準備：会員A・会員B・管理者（auth.users に入れると profiles が自動で作られる）
@@ -84,6 +84,11 @@ select set_config('request.jwt.claims', '{"role":"anon"}', true);
 select is((select count(*)::int from public.stems), 10, '十干の解説は誰でも読める');
 select is((select count(*)::int from public.stars), 10, '通変星の解説は誰でも読める');
 select throws_ok($$ select count(*) from public.profiles $$, '42501', null, '未ログインではプロフィールを読めない');
+select throws_ok($$ select public.is_admin() $$, '42501', null, '未ログインでは is_admin() を呼べない');
+select throws_ok($$ select * from public.admin_list_users() $$, '42501', null, '未ログインでは会員一覧の関数を呼べない');
+select throws_ok($$ select public.admin_update_user('10000000-0000-0000-0000-00000000000b'::uuid, 'admin', null) $$, '42501', null,
+  '未ログインでは会員の更新の関数を呼べない');
+select throws_ok($$ select public.handle_new_user() $$, '42501', null, 'トリガー専用の関数は直接呼べない');
 
 -- ---------------------------------------------------------------------------
 -- 後片付けの前に、他人の記録が無事か確かめる
