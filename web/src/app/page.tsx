@@ -1,68 +1,34 @@
-import { calculateMeishiki } from "@yoten/meishiki";
+import Link from "next/link";
 
 /**
- * 仮のトップページ（新版の準備中）
- * 計算ロジック（@yoten/meishiki）が Next.js から動くことを、基準ケースの命式で確かめる。
- * 正式なトップページは 04_骨格.md 4.3 のとおりに作る。
+ * トップページ（段階1の簡易版：04_骨格 4.3）
+ * 段階3で、紹介・読み物・無料診断の入口に作り替える。
  */
-const SAMPLE = calculateMeishiki({
-  year: 1985,
-  month: 5,
-  day: 10,
-  hour: 11,
-  minute: 30,
-  birthPlace: "21",
-  gender: "male",
-});
-
-const COLUMNS = [
-  { key: "hour", label: "時柱" },
-  { key: "day", label: "日柱" },
-  { key: "month", label: "月柱" },
-  { key: "year", label: "年柱" },
-] as const;
-
 export default function Home() {
   return (
     <main className="mx-auto w-full max-w-xl flex-1 px-4 py-12">
-      <p className="text-sm text-muted">新版 準備中</p>
+      <p className="text-sm text-muted">陽てん塾の四柱推命アプリ（α版）</p>
       <h1 className="mt-2 font-serif text-3xl font-bold leading-snug">
         生年月日から、
         <br />
         あなたの強みと活かし方を。
       </h1>
-      <p className="mt-4 text-muted">陽てん塾の四柱推命アプリを、より使いやすく作り直しています。</p>
-
-      <section className="mt-10 rounded-[var(--radius-md)] border border-border bg-surface p-4 shadow-sm">
-        <h2 className="text-lg font-bold">計算ロジックの動作確認（基準ケース）</h2>
-        <p className="mt-1 text-sm text-muted">1985年5月10日 11時30分 岐阜県 男性</p>
-        <table className="mt-4 w-full table-fixed text-center">
-          <thead>
-            <tr className="text-sm text-muted">
-              {COLUMNS.map((c) => (
-                <th key={c.key} className="font-normal">
-                  {c.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="font-serif text-2xl">
-            <tr>
-              {COLUMNS.map((c) => (
-                <td key={c.key}>{SAMPLE.pillars[c.key]?.stem ?? "—"}</td>
-              ))}
-            </tr>
-            <tr>
-              {COLUMNS.map((c) => (
-                <td key={c.key}>{SAMPLE.pillars[c.key]?.branch ?? "—"}</td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
-        <p className="mt-4 text-sm">
-          日干：{SAMPLE.dayStem}　{SAMPLE.strength.label}　{SAMPLE.kakukyoku || "格なし"}
+      <p className="mt-4 text-muted">
+        命式を正確に出し、9つの能力と7つの職種適性を、点数とその理由でお伝えします。
+      </p>
+      <div className="mt-8 space-y-3">
+        <Link
+          href="/signup"
+          className="flex min-h-12 items-center justify-center rounded-[var(--radius-md)] bg-primary font-bold text-on-primary hover:bg-primary-hover"
+        >
+          無料ではじめる
+        </Link>
+        <p className="text-center text-sm">
+          <Link href="/login" className="text-accent underline">
+            ログインはこちら
+          </Link>
         </p>
-      </section>
+      </div>
     </main>
   );
 }
