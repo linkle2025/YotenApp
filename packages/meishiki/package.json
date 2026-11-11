@@ -10,7 +10,8 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "generate:rules": "node scripts/generate-rules.mjs"
+    "generate:rules": "node scripts/generate-rules.mjs",
+    "generate:kimon": "node scripts/generate-kimon-data.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",

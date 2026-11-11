@@ -198,14 +198,16 @@ function adjustTime(
   };
 }
 
-function yearPillar(adjusted: CivilDateTime): { stem: Stem; branch: Branch } {
+/** 年柱（立春で切り替え）。奇門遁甲（kimon.ts）でも使う */
+export function yearPillar(adjusted: CivilDateTime): { stem: Stem; branch: Branch } {
   const risshun = risshunOf(adjusted.year);
   const year = risshun && toMinutes(adjusted) < risshun.minutes ? adjusted.year - 1 : adjusted.year;
   const offset = year - 1984; // 1984年 = 甲子
   return { stem: stemAt(offset), branch: branchAt(offset) };
 }
 
-function monthPillar(adjusted: CivilDateTime): { stem: Stem; branch: Branch } {
+/** 月柱（最後に通過した節の月柱）。奇門遁甲（kimon.ts）でも使う */
+export function monthPillar(adjusted: CivilDateTime): { stem: Stem; branch: Branch } {
   const term = lastTermAtOrBefore(toMinutes(adjusted));
   if (!term) {
     throw new MeishikiInputError('節入りデータの範囲外のため、月柱を決められません。', 'date');
@@ -213,7 +215,8 @@ function monthPillar(adjusted: CivilDateTime): { stem: Stem; branch: Branch } {
   return term.monthPillar;
 }
 
-function dayPillarOf(dayNumber: number): { stem: Stem; branch: Branch } {
+/** 日柱（1970-01-01 からの日数で指定）。奇門遁甲（kimon.ts）でも使う */
+export function dayPillarOf(dayNumber: number): { stem: Stem; branch: Branch } {
   const term = lastTermOnOrBeforeDay(dayNumber);
   if (!term) {
     throw new MeishikiInputError('節入りデータの範囲外のため、日柱を決められません。', 'date');
@@ -225,7 +228,8 @@ function dayPillarOf(dayNumber: number): { stem: Stem; branch: Branch } {
   };
 }
 
-function hourPillar(dayStem: Stem, hour: number): { stem: Stem; branch: Branch } {
+/** 時柱（五鼠遁。23時は子の刻で、日干は当日のまま）。奇門遁甲（kimon.ts）でも使う */
+export function hourPillar(dayStem: Stem, hour: number): { stem: Stem; branch: Branch } {
   const branchIndex = Math.floor((hour + 1) / 2) % 12; // 23時は子
   return {
     stem: stemAt(STEMS.indexOf(dayStem) * 2 + branchIndex), // 五鼠遁
