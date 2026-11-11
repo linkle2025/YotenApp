@@ -3,7 +3,7 @@
  * 仕様: 新仕様書/付録A_鑑定ロジック仕様.md、付録B_現行システムの課題.md
  */
 import { describe, expect, it } from 'vitest';
-import { calculateMeishiki, MeishikiInputError, type MeishikiInput } from '../src';
+import { calculateMeishiki, LEGACY_OPTIONS, MeishikiInputError, type MeishikiInput } from '../src';
 
 const pillars = (input: MeishikiInput, options = {}) => {
   const r = calculateMeishiki(input, options);
@@ -26,7 +26,9 @@ describe('基準ケース（付録A A.3）', () => {
     expect(r.taiun?.direction).toBe('逆運');
     expect(r.taiun?.ritsuun).toBe(2);
     expect(r.pillars.hour?.stemStar).toBe('傷官');
-    expect(r.correction.adjusted).toEqual({ year: 1985, month: 5, day: 10, hour: 11, minute: 40 });
+    // 既定は経度差だけで補正する（岐阜 +7分）。均時差は使わない（お手本サイトと同じ）
+    expect(r.correction).toMatchObject({ longitudeMinutes: 7, equationOfTimeMinutes: 0 });
+    expect(r.correction.adjusted).toEqual({ year: 1985, month: 5, day: 10, hour: 11, minute: 37 });
   });
 
   it('日干から見たグループと身旺身弱', () => {
@@ -62,43 +64,56 @@ describe('現行の不具合の修正（付録B B.1）', () => {
     expect(unknown.kangou.some((k) => (k.pillars as readonly string[]).includes('hour'))).toBe(false);
   });
 
-  it('立運0歳のとき、最初の運（0〜−1歳）を出さない', () => {
-    // 1990年立春の30分後（付録D No.4）は順運・立運0歳
-    const r = calculateMeishiki({ year: 1990, month: 2, day: 4, hour: 11, minute: 44, birthPlace: TOKYO, gender: 'male' });
-    expect(r.taiun?.ritsuun).toBe(0);
-    expect(r.taiun?.periods[0]).toMatchObject({ ageStart: 0, ageEnd: 9 });
-    expect(r.taiun?.periods.every((p) => p.ageEnd >= p.ageStart)).toBe(true);
+  it('節入りの当日に生まれても、大運の向きの節を取り違えない', () => {
+    // 1990年立春の30分後（付録D No.4）は順運。次の節（啓蟄）まで約30日で立運10歳（お手本サイトと同じ）
+    const input: MeishikiInput = { year: 1990, month: 2, day: 4, hour: 11, minute: 44, birthPlace: TOKYO, gender: 'male' };
+    const r = calculateMeishiki(input);
+    expect(r.taiun?.direction).toBe('順運');
+    expect(r.taiun?.ritsuun).toBe(10);
+    expect(r.taiun?.periods.find((p) => p.ageStart === 10)).toMatchObject({ stem: '己', branch: '卯' });
+    // 現行版の決まりでは、当日の立春を「次の節」と数えて立運0歳になっていた
+    expect(calculateMeishiki(input, LEGACY_OPTIONS).taiun?.ritsuun).toBe(0);
+  });
+
+  it('節入りの直後で日数がほぼ0でも、立運は1歳（お手本サイトと同じ）', () => {
+    const r = calculateMeishiki({ year: 2000, month: 1, day: 6, hour: 10, minute: 32, birthPlace: TOKYO, gender: 'male' });
+    expect(r.taiun?.ritsuun).toBe(1);
   });
 });
 
-describe('付録D のケース（現行と同じ結果になるもの）', () => {
-  it.each([
-    ['1990年立春の30分前', { year: 1990, month: 2, day: 4, hour: 10, minute: 44 }, TOKYO, ['己巳', '丁丑', '庚子', '辛巳']],
-    ['1990年立春の30分後', { year: 1990, month: 2, day: 4, hour: 11, minute: 44 }, TOKYO, ['庚午', '戊寅', '庚子', '壬午']],
-    ['立春の10分後・那覇', { year: 1990, month: 2, day: 4, hour: 11, minute: 24 }, '47', ['己巳', '丁丑', '庚子', '辛巳']],
-    ['23時30分・東京', { year: 1992, month: 6, day: 15, hour: 23, minute: 30 }, TOKYO, ['壬申', '丙午', '壬戌', '庚子']],
-    ['23時59分・東京', { year: 1992, month: 6, day: 15, hour: 23, minute: 59 }, TOKYO, ['壬申', '丙午', '癸亥', '壬子']],
-    ['0時10分・那覇（2月）', { year: 1988, month: 2, day: 20, hour: 0, minute: 10 }, '47', ['戊辰', '甲寅', '甲辰', '甲子']],
-  ] as const)('%s', (_label, dt, place, expected) => {
-    expect(pillars({ ...dt, birthPlace: place, gender: 'male' })).toEqual(expected);
-  });
-});
 
-describe('オプション（お手本サイトの扱いに合わせるためのもの）', () => {
-  it('補正なしにすると、入力した時刻のまま計算する', () => {
+describe('オプション', () => {
+  it('節入りは補正前の日本標準時で比べる。corrected にすると補正後の時刻で比べる（現行版）', () => {
+    // 那覇 11:24 は、立春（11:14）の10分後。補正（−29分）すると立春前
     const input: MeishikiInput = { year: 1990, month: 2, day: 4, hour: 11, minute: 24, birthPlace: '47', gender: 'male' };
-    expect(pillars(input)[0]).toBe('己巳'); // 補正（−42分）で立春前
-    const r = calculateMeishiki(input, { longitudeCorrection: false, equationOfTimeCorrection: false });
-    expect(r.pillars.year.stem + r.pillars.year.branch).toBe('庚午');
-    expect(r.correction.applied).toBe(false);
+    expect(pillars(input)[0]).toBe('庚午');
+    expect(pillars(input, { termBasis: 'corrected' })[0]).toBe('己巳');
   });
 
-  it('23時台を翌日とすると、日柱と時柱の天干が翌日のものになる', () => {
+  it('補正なしにすると、入力した時刻のまま計算する', () => {
+    const r = calculateMeishiki(
+      { year: 1993, month: 9, day: 9, hour: 10, minute: 45, birthPlace: TOKYO, gender: 'male' },
+      { longitudeCorrection: false },
+    );
+    expect(r.correction.applied).toBe(false);
+    expect(r.pillars.hour?.branch).toBe('巳');
+  });
+
+  it('23時台の時柱は翌日の子の刻。境目を23時にすると日柱も翌日になる', () => {
     const input: MeishikiInput = { year: 1992, month: 6, day: 15, hour: 23, minute: 30, birthPlace: TOKYO, gender: 'male' };
-    expect(pillars(input, { lateNightRule: 'nextDay' }).slice(2)).toEqual(['癸亥', '壬子']);
-    expect(pillars(input, { lateNightRule: 'sameDay' }).slice(2)).toEqual(['壬戌', '庚子']);
+    expect(pillars(input).slice(2)).toEqual(['壬戌', '壬子']);
+    expect(pillars(input, { dayBoundary: '23' }).slice(2)).toEqual(['癸亥', '壬子']);
+    // 現行版：時柱は日柱の日干から出す
+    expect(pillars(input, LEGACY_OPTIONS).slice(2)).toEqual(['壬戌', '庚子']);
+  });
+
+  it('時刻不明のときは、正午として節入りと比べる（立春の当日は立春後）', () => {
+    const input: MeishikiInput = { year: 1990, month: 2, day: 4, hourUnknown: true, birthPlace: TOKYO, gender: 'male' };
+    expect(pillars(input).slice(0, 2)).toEqual(['庚午', '戊寅']);
+    expect(pillars(input, LEGACY_OPTIONS).slice(0, 2)).toEqual(['己巳', '丁丑']);
   });
 });
+
 
 describe('入力チェック', () => {
   const base: MeishikiInput = { year: 1990, month: 1, day: 1, hour: 12, birthPlace: TOKYO, gender: 'male' };

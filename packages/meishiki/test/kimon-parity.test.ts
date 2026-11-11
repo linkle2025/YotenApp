@@ -13,6 +13,12 @@
  * - 五不遇時：日柱の天干で判定する
  * - 月柱：1月1日〜小寒前（現行の不具合）
  * - 日盤：現行版は必ずエラーになる（ここでは盤の配置を現行の関数で直接作って比べる）
+ *
+ * お手本サイトとの照合（2026-11-11、test/kimon-reference.test.ts）で、次の盤は作盤の決まりを直したため、
+ * 現行版との完全一致の比較から外す（件数だけ確かめる）。
+ * - 旬首が中宮にある盤：坤二宮の地盤干が旬首と一緒に動く／直使は坤二宮の門を旬首の宮から飛ばす
+ * - 直使が中宮に着く盤：坤二宮に寄せる
+ * - 補正後が23時台の時盤：時柱は翌日の子の刻（翌日の日干から時干を出す）
  */
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
@@ -75,9 +81,18 @@ describe('奇門遁甲：現行版との比較', () => {
     expect(nichiban.length).toBeGreaterThan(365);
   });
 
-  it('盤の配置・四柱・局数がすべて一致する', () => {
+  /** 作盤の決まりを直した盤（現行版の直使の位置が中宮、旬首が中宮、補正後が23時台＝時柱は翌日の子の刻） */
+  const changed = (c: LegacyKimonCase) => c.jjp === 5 || c.chokushi[1] === 5 || c.adj?.[3] === 23;
+
+  it('作盤の決まりを直した盤は、全体の4分の1未満', () => {
+    const n = cases.filter(changed).length;
+    expect(n).toBeGreaterThan(0);
+    expect(n / cases.length).toBeLessThan(0.25);
+  });
+
+  it('盤の配置・四柱・局数がすべて一致する（決まりを直した盤を除く）', () => {
     const mismatches: string[] = [];
-    for (const c of cases) {
+    for (const c of cases.filter((x) => !changed(x))) {
       const r = run(c);
       const expected = {
         adj: c.adj,
@@ -87,7 +102,7 @@ describe('奇門遁甲：現行版との比較', () => {
         junshu: c.junshu,
         jjp: c.jjp,
         jtp: c.jtp,
-        chokushi: c.chokushi,
+        chokushi: c.chokushi.slice(0, 2),
         chokufu: c.chokufu,
         palaces: c.palaces,
       };
@@ -100,7 +115,7 @@ describe('奇門遁甲：現行版との比較', () => {
         junshu: r.junshu,
         jjp: r.junshuJibanPosition,
         jtp: r.junshuTenbanPosition,
-        chokushi: [r.detail.chokushi.mon, r.detail.chokushi.position, r.detail.chokushi.branchFly],
+        chokushi: [r.detail.chokushi.mon, r.detail.chokushi.position],
         chokufu: [r.detail.chokufu.star, r.detail.chokufu.position],
         palaces: palaceStr(r),
       };
@@ -125,9 +140,9 @@ describe('奇門遁甲：現行版との比較', () => {
     }
   });
 
-  it('凶格・五不遇時は、不具合を直した期待値とすべて一致する', () => {
+  it('凶格・五不遇時は、不具合を直した期待値とすべて一致する（決まりを直した盤を除く）', () => {
     const mismatches: string[] = [];
-    for (const c of cases) {
+    for (const c of cases.filter((x) => !changed(x))) {
       const r = run(c);
       const actual = { kk: r.palaces.map((p) => p.kyokaku.join(',')), gobuuji: r.gobuuji };
       const expected = { kk: c.fixedKk, gobuuji: c.fixedGobuuji };

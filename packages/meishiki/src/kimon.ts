@@ -55,7 +55,7 @@ import {
 } from './kimonBoard';
 
 /** 奇門遁甲の計算ロジックの版。保存するときの再計算の目印 */
-export const KIMON_CALC_VERSION = 'kimon-0.2.0';
+export const KIMON_CALC_VERSION = 'kimon-0.3.0';
 
 /** 時盤の既定の場所（東京都。現行の既定「東京」と同じ） */
 export const KIMON_DEFAULT_PLACE = '13';
@@ -130,7 +130,7 @@ export interface KimonPalace {
   kichikaku: string[];
   /** 地盤干が旬首か（画面では括弧で囲む） */
   isJunshuJiban: boolean;
-  /** 天盤干の1つ目が旬首か（画面では括弧で囲む） */
+  /** この宮の天盤干に旬首があるか（画面では、天盤干のうち旬首の字を括弧で囲む。旬首が中宮のときは2つ目の干） */
   isJunshuTenban: boolean;
 }
 
@@ -289,14 +289,17 @@ function pillarsOf(input: KimonInput): Pick<KimonResult, 'correction' | 'pillars
   const adjusted = fromMinutes(
     toMinutes({ ...date, hour: input.hour!, minute: input.minute ?? 0 }) + longitudeMinutes + equationOfTimeMinutes,
   );
-  const day = dayPillarOf(toDayNumber(adjusted));
+  const dayNumber = toDayNumber(adjusted);
+  const day = dayPillarOf(dayNumber);
+  // 23時台は翌日の子の刻：時柱の天干は翌日の日干から出す（お手本サイトとの照合 K07、2026-11-11）
+  const hourStemDay = adjusted.hour === 23 ? dayPillarOf(dayNumber + 1) : day;
   return {
     correction: { placeName: prefecture.name, longitudeMinutes, equationOfTimeMinutes, adjusted },
     pillars: {
       year: yearPillar(adjusted),
       month: monthPillar(adjusted),
       day,
-      hour: hourPillar(day.stem, adjusted.hour),
+      hour: hourPillar(hourStemDay.stem, adjusted.hour),
     },
   };
 }

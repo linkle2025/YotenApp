@@ -51,7 +51,7 @@ import {
 import { EQUATION_OF_TIME_MINUTES, getPrefecture, type Prefecture } from './places';
 
 /** 計算ロジックの版。結果と一緒に保存し、ロジックを直したときの再計算の目印にする */
-export const CALC_VERSION = 'meishiki-0.1.0';
+export const CALC_VERSION = 'meishiki-0.2.0';
 
 export type Gender = 'male' | 'female';
 
@@ -69,18 +69,56 @@ export interface MeishikiInput {
   gender: Gender;
 }
 
+/**
+ * 計算の決まり。既定値はお手本サイトとの照合（2026-11-11、付録D）で確かめた決まり。
+ * 現行版（旧版）の決まりは LEGACY_OPTIONS で再現できる（現行版との比較テスト用）。
+ */
 export interface MeishikiOptions {
-  /** 経度差による補正をするか（既定 true。お手本サイトの扱いに合わせて決める） */
+  /** 出生地の経度差で時刻を補正するか（既定 true） */
   longitudeCorrection?: boolean;
-  /** 均時差による補正をするか（既定 true） */
+  /** 均時差でも補正するか（既定 false：お手本サイトは経度差だけ。現行版は true） */
   equationOfTimeCorrection?: boolean;
   /**
-   * 23時台（補正後）の日柱の扱い（既定 'sameDay'）
-   * - sameDay: 当日の日柱のまま（現行と同じ）
-   * - nextDay: 翌日の日柱にする（時柱の天干も翌日の日干から出す）
+   * 年柱・月柱の節入りと比べる時刻（既定 'standard'）
+   * - standard: 補正前の日本標準時（お手本サイト）
+   * - corrected: 補正後の時刻（現行版）
    */
+  termBasis?: 'standard' | 'corrected';
+  /**
+   * 日の境目（既定 '24'）
+   * - '24': 0時で日が変わる（23時台は当日の日柱）
+   * - '23': 23時で日が変わる（入力の時刻または補正後の時刻が23時台なら翌日の日柱。
+   *         ただし補正で前日に戻った場合は翌日にしない＝お手本サイトの結果に合わせた）
+   */
+  dayBoundary?: '24' | '23';
+  /**
+   * 23時台（補正後）の時柱の天干（既定 'nextDay'）
+   * - nextDay: 翌日の子の刻として、翌日の日干から出す（お手本サイト。日の境目の設定によらない）
+   * - dayPillar: 日柱の日干から出す（現行版）
+   */
+  lateNightHourStem?: 'nextDay' | 'dayPillar';
+  /** 時刻不明のとき、年柱・月柱の節入りと比べる時刻（既定 12 ＝正午：お手本サイト。現行版は 0） */
+  unknownTimeTermHour?: number;
+  /**
+   * 立運の数え方（既定 'reference'）
+   * - reference: 生まれた日時から節入りまでの日数（時刻まで含む）÷3 を四捨五入、最低1歳（お手本サイト）
+   * - legacy: 生まれた日の0時から日数を数える（現行版。節入り当日の生まれで向きを取り違える）
+   */
+  taiunMethod?: 'reference' | 'legacy';
+  /** @deprecated dayBoundary を使う（'sameDay' ＝ '24'、'nextDay' ＝ '23'） */
   lateNightRule?: 'sameDay' | 'nextDay';
 }
+
+/** 現行版（旧版）と同じ決まり。現行版との比較テストで使う */
+export const LEGACY_OPTIONS: MeishikiOptions = {
+  longitudeCorrection: true,
+  equationOfTimeCorrection: true,
+  termBasis: 'corrected',
+  dayBoundary: '24',
+  lateNightHourStem: 'dayPillar',
+  unknownTimeTermHour: 0,
+  taiunMethod: 'legacy',
+};
 
 export interface Pillar {
   stem: Stem;
@@ -173,7 +211,7 @@ function validate(input: MeishikiInput): void {
 function adjustTime(
   input: MeishikiInput,
   prefecture: Prefecture,
-  options: Required<MeishikiOptions>,
+  options: ResolvedOptions,
 ): MeishikiResult['correction'] {
   const date: CivilDate = { year: input.year, month: input.month, day: input.day };
   if (input.hourUnknown) {
@@ -348,30 +386,47 @@ function kangouOf(pillars: MeishikiResult['pillars']): Kangou[] {
   return result;
 }
 
-/** 大運（現行: calculate_taiun）。日数は時刻付きの差を日単位で切り捨てて数える */
+/**
+ * 大運
+ * - reference（既定）：生まれた日時（日本標準時）から、順運は次の節、逆運は直前の節までの日数（時刻まで含む）を
+ *   3で割って四捨五入し、最低1歳。お手本サイトの立運と38件すべて一致（2026-11-11）
+ * - legacy：現行の calculate_taiun。生まれた日の0時から日単位で数える
+ */
 function taiunOf(
   adjusted: CivilDate,
+  birthStandardMinutes: number,
   yearStem: Stem,
   month: { stem: Stem; branch: Branch },
   dayStem: Stem,
   gender: Gender,
+  method: 'reference' | 'legacy',
 ): Taiun | null {
   const isYang = YANG_STEMS.has(yearStem);
   const forward = gender === 'male' ? isYang : !isYang;
   const birthMidnight = toDayNumber(adjusted) * MINUTES_PER_DAY;
 
   let days: number;
-  if (forward) {
+  let ritsuun: number;
+  if (method === 'reference') {
+    const term = forward ? firstTermAfter(birthStandardMinutes) : lastTermAtOrBefore(birthStandardMinutes);
+    if (!term) return null;
+    days = Math.abs(term.minutes - birthStandardMinutes) / MINUTES_PER_DAY;
+    ritsuun = Math.max(1, Math.round(days / 3));
+  } else if (forward) {
     const term = firstTermAfter(birthMidnight);
     if (!term) return null;
     days = Math.floor((term.minutes - birthMidnight) / MINUTES_PER_DAY);
+    ritsuun = 0;
   } else {
     const term = lastTermBefore(birthMidnight);
     if (!term) return null;
     days = Math.floor((birthMidnight - term.minutes) / MINUTES_PER_DAY) + 1; // 両端を数える
+    ritsuun = 0;
   }
-  const quotient = Math.floor(days / 3);
-  const ritsuun = days % 3 === 2 ? quotient + 1 : quotient;
+  if (method === 'legacy') {
+    const quotient = Math.floor(days / 3);
+    ritsuun = days % 3 === 2 ? quotient + 1 : quotient;
+  }
 
   const step = forward ? 1 : -1;
   const stemIndex = STEMS.indexOf(month.stem);
@@ -389,13 +444,23 @@ function taiunOf(
 
 // ---------------------------------------------------------------------------
 
+type ResolvedOptions = Required<Omit<MeishikiOptions, 'lateNightRule'>>;
+
+function resolveOptions(options: MeishikiOptions): ResolvedOptions {
+  return {
+    longitudeCorrection: options.longitudeCorrection ?? true,
+    equationOfTimeCorrection: options.equationOfTimeCorrection ?? false,
+    termBasis: options.termBasis ?? 'standard',
+    dayBoundary: options.dayBoundary ?? (options.lateNightRule === 'nextDay' ? '23' : '24'),
+    lateNightHourStem: options.lateNightHourStem ?? 'nextDay',
+    unknownTimeTermHour: options.unknownTimeTermHour ?? 12,
+    taiunMethod: options.taiunMethod ?? 'reference',
+  };
+}
+
 export function calculateMeishiki(input: MeishikiInput, options: MeishikiOptions = {}): MeishikiResult {
   validate(input);
-  const opts: Required<MeishikiOptions> = {
-    longitudeCorrection: options.longitudeCorrection ?? true,
-    equationOfTimeCorrection: options.equationOfTimeCorrection ?? true,
-    lateNightRule: options.lateNightRule ?? 'sameDay',
-  };
+  const opts = resolveOptions(options);
   let prefecture: Prefecture;
   try {
     prefecture = getPrefecture(input.birthPlace);
@@ -407,12 +472,32 @@ export function calculateMeishiki(input: MeishikiInput, options: MeishikiOptions
   const { adjusted } = correction;
   const hourUnknown = input.hourUnknown === true;
 
-  const y = yearPillar(adjusted);
-  const m = monthPillar(adjusted);
-  const dayShift = !hourUnknown && opts.lateNightRule === 'nextDay' && adjusted.hour === 23 ? 1 : 0;
-  const d = dayPillarOf(toDayNumber(adjusted) + dayShift);
+  // 年柱・月柱：節入りと比べる時刻
+  const standard: CivilDateTime = {
+    year: input.year,
+    month: input.month,
+    day: input.day,
+    hour: hourUnknown ? opts.unknownTimeTermHour : input.hour!,
+    minute: hourUnknown ? 0 : (input.minute ?? 0),
+  };
+  const termTime = opts.termBasis === 'corrected' && !hourUnknown ? adjusted : standard;
+  const y = yearPillar(termTime);
+  const m = monthPillar(termTime);
+
+  // 日柱：補正後の日付。境目が23時なら、入力の時刻か補正後の時刻が23時台で翌日にする
+  const baseDay = toDayNumber(adjusted);
+  const sameDate = adjusted.year === input.year && adjusted.month === input.month && adjusted.day === input.day;
+  const dayShift =
+    !hourUnknown && opts.dayBoundary === '23' && (input.hour === 23 || (adjusted.hour === 23 && sameDate)) ? 1 : 0;
+  const d = dayPillarOf(baseDay + dayShift);
   const dayStem = d.stem;
-  const h = hourUnknown ? null : hourPillar(dayStem, adjusted.hour);
+  // 時柱：補正後の日付の日干から出し、23時台は翌日の子の刻とする（お手本サイト。境目の設定で日柱だけ翌日に
+  // なっても、時柱は補正後の日付で決める）。現行版は日柱の日干から出す
+  const hourDayStem =
+    opts.lateNightHourStem === 'nextDay'
+      ? dayPillarOf(baseDay + (adjusted.hour === 23 ? 1 : 0)).stem
+      : dayStem;
+  const h = hourUnknown ? null : hourPillar(hourDayStem, adjusted.hour);
 
   const pillars = {
     year: makePillar(y, dayStem),
@@ -454,6 +539,6 @@ export function calculateMeishiki(input: MeishikiInput, options: MeishikiOptions
     strength: { label: diff > 0 ? '身旺' : diff < 0 ? '身弱' : '中和', diff },
     kakukyoku: kakukyokuOf(m.branch, stems, dayStem),
     kangou: kangouOf(pillars),
-    taiun: taiunOf(adjusted, y.stem, m, dayStem, input.gender),
+    taiun: taiunOf(adjusted, toMinutes(standard), y.stem, m, dayStem, input.gender, opts.taiunMethod),
   };
 }

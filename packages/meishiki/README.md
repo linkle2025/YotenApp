@@ -130,3 +130,11 @@ docker compose exec -T backend python - < packages/meishiki/scripts/export_legac
 - 玉女守門：天盤に「丁」があり、直使と同じ宮にある
 
 天盤干が2つある宮は、どちらの干も天盤干として見る。
+
+## 計算の決まり（お手本サイトに合わせた既定値）
+
+2026-11-11 にお手本サイトと照合し、既定値をお手本サイトの決まりにした（新仕様書/付録D の D.5）。命式は四柱・大運が48件、奇門遁甲は10盤すべてで一致する（`test/reference-meishiki.test.ts`・`test/kimon-reference.test.ts`）。
+
+`calculateMeishiki(input, options)` の主な設定：`equationOfTimeCorrection`（既定 false）、`termBasis`（既定 'standard'＝節入りは日本標準時）、`dayBoundary`（'24' か '23'、既定 '24'）、`lateNightHourStem`（既定 'nextDay'＝23時台は翌日の子の刻）、`unknownTimeTermHour`（既定 12）、`taiunMethod`（既定 'reference'）。現行版（旧版）と同じ結果は `LEGACY_OPTIONS` で出せる（現行版との比較テストで使用）。
+
+計算の決まりを変えたら `CALC_VERSION` を上げる。保存済みの鑑定記録は、画面で開いたときに計算し直される（web の `src/lib/readings.ts`）。

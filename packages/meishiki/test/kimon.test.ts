@@ -10,6 +10,7 @@ import {
   KYOKUSU_YEARS,
   KimonInputError,
   PALACE_GRID_ORDER,
+  PALACE_POSITIONS,
   calculateKimonDay,
   calculateKimonTonkou,
   kyokusuEntryOf,
@@ -85,14 +86,22 @@ describe('作盤（現行のテストから引き継ぎ）', () => {
       const p = Number(pos) as 1;
       expect([board.kyusei[p], board.hachimon[p], board.hasshin[p]], `宮${pos}`).toEqual([kyusei, hachimon, hasshin]);
     }
-    // 旬首地盤が中宮の時盤は時支飛宮（卯=4）。大直符は坤二宮に寄せる
-    expect(board.detail.chokushi.branchFly).toBe(true);
+    // 旬首が中宮：直使は坤二宮の死門を中宮から5つ（己＝干の数6−1）飛ばして坎一宮へ。大直符は坤二宮に寄せる
+    expect(board.detail.chokushi).toEqual({ mon: '死', position: 1 });
+    // 坤二宮の地盤干（丙）が旬首（己）と一緒に動く（お手本サイトの「丙(己)」）
+    expect(board.tenban[2]).toEqual(['丙', '己']);
     expect(board.detail.chokufu.position).toBe(2);
     expect(board.chugan).toBe('己卯');
   });
 
-  it('旬首地盤が中宮でない時盤は時支飛宮を使わない（丙寅・陽遁一局）', () => {
-    expect(layoutKimonBoard('丙', '寅', '陽', 1, '時盤').detail.chokushi.branchFly).toBe(false);
+  it('直使が中宮に着いたら坤二宮に寄せ、中宮には門を入れない', () => {
+    for (const yy of ['陽', '陰'] as const)
+      for (let k = 1; k <= 9; k++)
+        for (const [stem, branch] of [['乙', '丑'], ['丙', '寅'], ['丁', '卯'], ['戊', '辰'], ['己', '巳'], ['庚', '午'], ['辛', '未'], ['壬', '申'], ['癸', '酉']] as const) {
+          const b = layoutKimonBoard(stem, branch, yy, k, '時盤');
+          expect(b.hachimon[5]).toBeNull();
+          expect(PALACE_POSITIONS.filter((p) => p !== 5 && b.hachimon[p]).length).toBe(8);
+        }
   });
 
   it('同じ日時を calculateKimonTonkou で作ると、四柱・局数も現行の参照盤と同じ', () => {

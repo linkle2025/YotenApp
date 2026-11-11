@@ -1,0 +1,812 @@
+{
+ "source": "お手本サイト（会員制）の画面から書き写した盤（2026-11-11）。付録D の D.4。マスの順は 巽・離・坤・震・中・兌・艮・坎・乾（上が南）。お手本の「内禽」はフォントの都合で「芮禽」と読み替えた",
+ "cases": [
+  {
+   "case": "K01 2026-11-11 1751 時盤",
+   "input": {
+    "type": "時盤",
+    "year": 2026,
+    "month": 11,
+    "day": 11,
+    "hour": 17,
+    "minute": 51
+   },
+   "header": [
+    "作盤日時：2026年11月11日17時51分（日本標準時）",
+    "干支表現：丙午年己亥月己丑日癸酉時",
+    "節気三元：立冬下元（陰三局）"
+   ],
+   "cells": [
+    {
+     "tenban": "丁",
+     "kyusei": "心",
+     "jiban": "乙",
+     "hachimon": "杜",
+     "hasshin": "合"
+    },
+    {
+     "tenban": "庚",
+     "kyusei": "蓬",
+     "jiban": "辛",
+     "hachimon": "景",
+     "hasshin": "陰"
+    },
+    {
+     "tenban": "壬",
+     "kyusei": "任",
+     "jiban": "己",
+     "hachimon": "死",
+     "hasshin": "蛇"
+    },
+    {
+     "tenban": "癸",
+     "kyusei": "柱",
+     "jiban": "(戊)",
+     "hachimon": "傷",
+     "hasshin": "陳"
+    },
+    {
+     "tenban": "",
+     "kyusei": "",
+     "jiban": "丙",
+     "hachimon": "",
+     "hasshin": ""
+    },
+    {
+     "tenban": "(戊)",
+     "kyusei": "冲",
+     "jiban": "癸",
+     "hachimon": "驚",
+     "hasshin": "符"
+    },
+    {
+     "tenban": "己丙",
+     "kyusei": "芮禽",
+     "jiban": "壬",
+     "hachimon": "生",
+     "hasshin": "雀"
+    },
+    {
+     "tenban": "辛",
+     "kyusei": "英",
+     "jiban": "庚",
+     "hachimon": "休",
+     "hasshin": "地"
+    },
+    {
+     "tenban": "乙",
+     "kyusei": "輔",
+     "jiban": "丁",
+     "hachimon": "開",
+     "hasshin": "天"
+    }
+   ]
+  },
+  {
+   "case": "K02 2026-05-06 0500 時盤",
+   "input": {
+    "type": "時盤",
+    "year": 2026,
+    "month": 5,
+    "day": 6,
+    "hour": 5,
+    "minute": 0
+   },
+   "header": [
+    "作盤日時：2026年5月6日5時0分（日本標準時）",
+    "干支表現：丙午年癸巳月庚辰日己卯時",
+    "節気三元：立夏上元（陽四局）"
+   ],
+   "cells": [
+    {
+     "tenban": "戊",
+     "kyusei": "輔",
+     "jiban": "戊",
+     "hachimon": "休",
+     "hasshin": "地"
+    },
+    {
+     "tenban": "癸",
+     "kyusei": "英",
+     "jiban": "癸",
+     "hachimon": "生",
+     "hasshin": "天"
+    },
+    {
+     "tenban": "丙(己)",
+     "kyusei": "芮禽",
+     "jiban": "丙",
+     "hachimon": "傷",
+     "hasshin": "符"
+    },
+    {
+     "tenban": "乙",
+     "kyusei": "冲",
+     "jiban": "乙",
+     "hachimon": "開",
+     "hasshin": "雀"
+    },
+    {
+     "tenban": "",
+     "kyusei": "",
+     "jiban": "(己)",
+     "hachimon": "",
+     "hasshin": ""
+    },
+    {
+     "tenban": "辛",
+     "kyusei": "柱",
+     "jiban": "辛",
+     "hachimon": "杜",
+     "hasshin": "蛇"
+    },
+    {
+     "tenban": "壬",
+     "kyusei": "任",
+     "jiban": "壬",
+     "hachimon": "驚",
+     "hasshin": "陳"
+    },
+    {
+     "tenban": "丁",
+     "kyusei": "蓬",
+     "jiban": "丁",
+     "hachimon": "死",
+     "hasshin": "合"
+    },
+    {
+     "tenban": "庚",
+     "kyusei": "心",
+     "jiban": "庚",
+     "hachimon": "景",
+     "hasshin": "陰"
+    }
+   ]
+  },
+  {
+   "case": "K03 2026-11-01 0600 時盤",
+   "input": {
+    "type": "時盤",
+    "year": 2026,
+    "month": 11,
+    "day": 1,
+    "hour": 6,
+    "minute": 0
+   },
+   "header": [
+    "作盤日時：2026年11月1日6時0分（日本標準時）",
+    "干支表現：丙午年戊戌月己卯日丁卯時",
+    "節気三元：立冬上元（陰六局）"
+   ],
+   "cells": [
+    {
+     "tenban": "乙",
+     "kyusei": "柱",
+     "jiban": "庚",
+     "hachimon": "休",
+     "hasshin": "蛇"
+    },
+    {
+     "tenban": "(戊)",
+     "kyusei": "心",
+     "jiban": "丁",
+     "hachimon": "生",
+     "hasshin": "符"
+    },
+    {
+     "tenban": "癸",
+     "kyusei": "蓬",
+     "jiban": "壬",
+     "hachimon": "傷",
+     "hasshin": "天"
+    },
+    {
+     "tenban": "壬己",
+     "kyusei": "芮禽",
+     "jiban": "辛",
+     "hachimon": "開",
+     "hasshin": "陰"
+    },
+    {
+     "tenban": "",
+     "kyusei": "",
+     "jiban": "己",
+     "hachimon": "",
+     "hasshin": ""
+    },
+    {
+     "tenban": "丙",
+     "kyusei": "任",
+     "jiban": "乙",
+     "hachimon": "杜",
+     "hasshin": "地"
+    },
+    {
+     "tenban": "丁",
+     "kyusei": "英",
+     "jiban": "丙",
+     "hachimon": "驚",
+     "hasshin": "合"
+    },
+    {
+     "tenban": "庚",
+     "kyusei": "輔",
+     "jiban": "癸",
+     "hachimon": "死",
+     "hasshin": "陳"
+    },
+    {
+     "tenban": "辛",
+     "kyusei": "冲",
+     "jiban": "(戊)",
+     "hachimon": "景",
+     "hasshin": "雀"
+    }
+   ]
+  },
+  {
+   "case": "K04 2026-11-01 2000 時盤",
+   "input": {
+    "type": "時盤",
+    "year": 2026,
+    "month": 11,
+    "day": 1,
+    "hour": 20,
+    "minute": 0
+   },
+   "header": [
+    "作盤日時：2026年11月1日20時0分（日本標準時）",
+    "干支表現：丙午年戊戌月己卯日甲戌時",
+    "節気三元：立冬上元（陰六局）"
+   ],
+   "cells": [
+    {
+     "tenban": "庚",
+     "kyusei": "輔",
+     "jiban": "庚",
+     "hachimon": "杜",
+     "hasshin": "陰"
+    },
+    {
+     "tenban": "丁",
+     "kyusei": "英",
+     "jiban": "丁",
+     "hachimon": "景",
+     "hasshin": "蛇"
+    },
+    {
+     "tenban": "壬(己)",
+     "kyusei": "芮禽",
+     "jiban": "壬",
+     "hachimon": "死",
+     "hasshin": "符"
+    },
+    {
+     "tenban": "辛",
+     "kyusei": "冲",
+     "jiban": "辛",
+     "hachimon": "傷",
+     "hasshin": "合"
+    },
+    {
+     "tenban": "",
+     "kyusei": "",
+     "jiban": "(己)",
+     "hachimon": "",
+     "hasshin": ""
+    },
+    {
+     "tenban": "乙",
+     "kyusei": "柱",
+     "jiban": "乙",
+     "hachimon": "驚",
+     "hasshin": "天"
+    },
+    {
+     "tenban": "丙",
+     "kyusei": "任",
+     "jiban": "丙",
+     "hachimon": "生",
+     "hasshin": "陳"
+    },
+    {
+     "tenban": "癸",
+     "kyusei": "蓬",
+     "jiban": "癸",
+     "hachimon": "休",
+     "hasshin": "雀"
+    },
+    {
+     "tenban": "戊",
+     "kyusei": "心",
+     "jiban": "戊",
+     "hachimon": "開",
+     "hasshin": "地"
+    }
+   ]
+  },
+  {
+   "case": "K05 2026-01-01 0800 時盤",
+   "input": {
+    "type": "時盤",
+    "year": 2026,
+    "month": 1,
+    "day": 1,
+    "hour": 8,
+    "minute": 0
+   },
+   "header": [
+    "作盤日時：2026年1月1日8時0分（日本標準時）",
+    "干支表現：乙巳年戊子月乙亥日庚辰時",
+    "節気三元：冬至下元（陽四局）"
+   ],
+   "cells": [
+    {
+     "tenban": "壬",
+     "kyusei": "任",
+     "jiban": "戊",
+     "hachimon": "杜",
+     "hasshin": "陳"
+    },
+    {
+     "tenban": "乙",
+     "kyusei": "冲",
+     "jiban": "癸",
+     "hachimon": "景",
+     "hasshin": "雀"
+    },
+    {
+     "tenban": "戊",
+     "kyusei": "輔",
+     "jiban": "丙",
+     "hachimon": "死",
+     "hasshin": "地"
+    },
+    {
+     "tenban": "丁",
+     "kyusei": "蓬",
+     "jiban": "乙",
+     "hachimon": "傷",
+     "hasshin": "合"
+    },
+    {
+     "tenban": "",
+     "kyusei": "",
+     "jiban": "(己)",
+     "hachimon": "",
+     "hasshin": ""
+    },
+    {
+     "tenban": "癸",
+     "kyusei": "英",
+     "jiban": "辛",
+     "hachimon": "驚",
+     "hasshin": "天"
+    },
+    {
+     "tenban": "庚",
+     "kyusei": "心",
+     "jiban": "壬",
+     "hachimon": "生",
+     "hasshin": "陰"
+    },
+    {
+     "tenban": "辛",
+     "kyusei": "柱",
+     "jiban": "丁",
+     "hachimon": "休",
+     "hasshin": "蛇"
+    },
+    {
+     "tenban": "丙(己)",
+     "kyusei": "芮禽",
+     "jiban": "庚",
+     "hachimon": "開",
+     "hasshin": "符"
+    }
+   ]
+  },
+  {
+   "case": "K06 2026-08-15 1250 時盤",
+   "input": {
+    "type": "時盤",
+    "year": 2026,
+    "month": 8,
+    "day": 15,
+    "hour": 12,
+    "minute": 50
+   },
+   "header": [
+    "作盤日時：2026年8月15日12時50分（日本標準時）",
+    "干支表現：丙午年丙申月辛酉日乙未時",
+    "節気三元：立秋下元（陰八局）"
+   ],
+   "cells": [
+    {
+     "tenban": "乙",
+     "kyusei": "英",
+     "jiban": "壬",
+     "hachimon": "死",
+     "hasshin": "蛇"
+    },
+    {
+     "tenban": "丁(辛)",
+     "kyusei": "芮禽",
+     "jiban": "乙",
+     "hachimon": "驚",
+     "hasshin": "符"
+    },
+    {
+     "tenban": "己",
+     "kyusei": "柱",
+     "jiban": "丁",
+     "hachimon": "開",
+     "hasshin": "天"
+    },
+    {
+     "tenban": "壬",
+     "kyusei": "輔",
+     "jiban": "癸",
+     "hachimon": "景",
+     "hasshin": "陰"
+    },
+    {
+     "tenban": "",
+     "kyusei": "",
+     "jiban": "(辛)",
+     "hachimon": "",
+     "hasshin": ""
+    },
+    {
+     "tenban": "庚",
+     "kyusei": "心",
+     "jiban": "己",
+     "hachimon": "休",
+     "hasshin": "地"
+    },
+    {
+     "tenban": "癸",
+     "kyusei": "冲",
+     "jiban": "戊",
+     "hachimon": "杜",
+     "hasshin": "合"
+    },
+    {
+     "tenban": "戊",
+     "kyusei": "任",
+     "jiban": "丙",
+     "hachimon": "傷",
+     "hasshin": "陳"
+    },
+    {
+     "tenban": "丙",
+     "kyusei": "蓬",
+     "jiban": "庚",
+     "hachimon": "生",
+     "hasshin": "雀"
+    }
+   ]
+  },
+  {
+   "case": "K07 2026-09-10 2330 時盤",
+   "input": {
+    "type": "時盤",
+    "year": 2026,
+    "month": 9,
+    "day": 10,
+    "hour": 23,
+    "minute": 30
+   },
+   "header": [
+    "作盤日時：2026年9月10日23時30分（日本標準時）",
+    "干支表現：丙午年丁酉月丁亥日壬子時",
+    "節気三元：白露中元（陰三局）"
+   ],
+   "cells": [
+    {
+     "tenban": "乙",
+     "kyusei": "輔",
+     "jiban": "乙",
+     "hachimon": "休",
+     "hasshin": "地"
+    },
+    {
+     "tenban": "辛",
+     "kyusei": "英",
+     "jiban": "辛",
+     "hachimon": "生",
+     "hasshin": "雀"
+    },
+    {
+     "tenban": "己丙",
+     "kyusei": "芮禽",
+     "jiban": "己",
+     "hachimon": "傷",
+     "hasshin": "陳"
+    },
+    {
+     "tenban": "戊",
+     "kyusei": "冲",
+     "jiban": "戊",
+     "hachimon": "開",
+     "hasshin": "天"
+    },
+    {
+     "tenban": "",
+     "kyusei": "",
+     "jiban": "丙",
+     "hachimon": "",
+     "hasshin": ""
+    },
+    {
+     "tenban": "癸",
+     "kyusei": "柱",
+     "jiban": "癸",
+     "hachimon": "杜",
+     "hasshin": "合"
+    },
+    {
+     "tenban": "(壬)",
+     "kyusei": "任",
+     "jiban": "(壬)",
+     "hachimon": "驚",
+     "hasshin": "符"
+    },
+    {
+     "tenban": "庚",
+     "kyusei": "蓬",
+     "jiban": "庚",
+     "hachimon": "死",
+     "hasshin": "蛇"
+    },
+    {
+     "tenban": "丁",
+     "kyusei": "心",
+     "jiban": "丁",
+     "hachimon": "景",
+     "hasshin": "陰"
+    }
+   ]
+  },
+  {
+   "case": "K08 2026-06-21 1200 時盤",
+   "input": {
+    "type": "時盤",
+    "year": 2026,
+    "month": 6,
+    "day": 21,
+    "hour": 12,
+    "minute": 0
+   },
+   "header": [
+    "作盤日時：2026年6月21日12時0分（日本標準時）",
+    "干支表現：丙午年甲午月丙寅日甲午時",
+    "節気三元：夏至上元（陰九局）"
+   ],
+   "cells": [
+    {
+     "tenban": "癸",
+     "kyusei": "輔",
+     "jiban": "癸",
+     "hachimon": "杜",
+     "hasshin": "陳"
+    },
+    {
+     "tenban": "戊",
+     "kyusei": "英",
+     "jiban": "戊",
+     "hachimon": "景",
+     "hasshin": "合"
+    },
+    {
+     "tenban": "丙壬",
+     "kyusei": "芮禽",
+     "jiban": "丙",
+     "hachimon": "死",
+     "hasshin": "陰"
+    },
+    {
+     "tenban": "丁",
+     "kyusei": "冲",
+     "jiban": "丁",
+     "hachimon": "傷",
+     "hasshin": "雀"
+    },
+    {
+     "tenban": "",
+     "kyusei": "",
+     "jiban": "壬",
+     "hachimon": "",
+     "hasshin": ""
+    },
+    {
+     "tenban": "庚",
+     "kyusei": "柱",
+     "jiban": "庚",
+     "hachimon": "驚",
+     "hasshin": "蛇"
+    },
+    {
+     "tenban": "己",
+     "kyusei": "任",
+     "jiban": "己",
+     "hachimon": "生",
+     "hasshin": "地"
+    },
+    {
+     "tenban": "乙",
+     "kyusei": "蓬",
+     "jiban": "乙",
+     "hachimon": "休",
+     "hasshin": "天"
+    },
+    {
+     "tenban": "(辛)",
+     "kyusei": "心",
+     "jiban": "(辛)",
+     "hachimon": "開",
+     "hasshin": "符"
+    }
+   ]
+  },
+  {
+   "case": "K09 2026-12-22 1200 時盤",
+   "input": {
+    "type": "時盤",
+    "year": 2026,
+    "month": 12,
+    "day": 22,
+    "hour": 12,
+    "minute": 0
+   },
+   "header": [
+    "作盤日時：2026年12月22日12時0分（日本標準時）",
+    "干支表現：丙午年庚子月庚午日壬午時",
+    "節気三元：冬至中元（陽七局）"
+   ],
+   "cells": [
+    {
+     "tenban": "乙",
+     "kyusei": "心",
+     "jiban": "丁",
+     "hachimon": "驚",
+     "hasshin": "地"
+    },
+    {
+     "tenban": "辛",
+     "kyusei": "蓬",
+     "jiban": "庚",
+     "hachimon": "開",
+     "hasshin": "天"
+    },
+    {
+     "tenban": "(己)",
+     "kyusei": "任",
+     "jiban": "壬",
+     "hachimon": "休",
+     "hasshin": "符"
+    },
+    {
+     "tenban": "戊",
+     "kyusei": "柱",
+     "jiban": "癸",
+     "hachimon": "死",
+     "hasshin": "雀"
+    },
+    {
+     "tenban": "",
+     "kyusei": "",
+     "jiban": "丙",
+     "hachimon": "",
+     "hasshin": ""
+    },
+    {
+     "tenban": "癸",
+     "kyusei": "冲",
+     "jiban": "戊",
+     "hachimon": "生",
+     "hasshin": "蛇"
+    },
+    {
+     "tenban": "壬丙",
+     "kyusei": "芮禽",
+     "jiban": "(己)",
+     "hachimon": "景",
+     "hasshin": "陳"
+    },
+    {
+     "tenban": "庚",
+     "kyusei": "英",
+     "jiban": "辛",
+     "hachimon": "杜",
+     "hasshin": "合"
+    },
+    {
+     "tenban": "丁",
+     "kyusei": "輔",
+     "jiban": "乙",
+     "hachimon": "傷",
+     "hasshin": "陰"
+    }
+   ]
+  },
+  {
+   "case": "K10 2026-11-11 日盤",
+   "input": {
+    "type": "日盤",
+    "year": 2026,
+    "month": 11,
+    "day": 11
+   },
+   "header": [
+    "作盤日　：2026年11月11日",
+    "干支局数：己丑陰八局"
+   ],
+   "cells": [
+    {
+     "tenban": "乙",
+     "kyusei": "英",
+     "jiban": "壬",
+     "hachimon": "傷",
+     "hasshin": "合"
+    },
+    {
+     "tenban": "丁辛",
+     "kyusei": "芮禽",
+     "jiban": "乙",
+     "hachimon": "杜",
+     "hasshin": "陰"
+    },
+    {
+     "tenban": "己",
+     "kyusei": "柱",
+     "jiban": "丁",
+     "hachimon": "景",
+     "hasshin": "蛇"
+    },
+    {
+     "tenban": "壬",
+     "kyusei": "輔",
+     "jiban": "癸",
+     "hachimon": "生",
+     "hasshin": "陳"
+    },
+    {
+     "tenban": "",
+     "kyusei": "",
+     "jiban": "辛",
+     "hachimon": "",
+     "hasshin": ""
+    },
+    {
+     "tenban": "(庚)",
+     "kyusei": "心",
+     "jiban": "己",
+     "hachimon": "死",
+     "hasshin": "符"
+    },
+    {
+     "tenban": "癸",
+     "kyusei": "冲",
+     "jiban": "戊",
+     "hachimon": "休",
+     "hasshin": "雀"
+    },
+    {
+     "tenban": "戊",
+     "kyusei": "任",
+     "jiban": "丙",
+     "hachimon": "開",
+     "hasshin": "地"
+    },
+    {
+     "tenban": "丙",
+     "kyusei": "蓬",
+     "jiban": "(庚)",
+     "hachimon": "驚",
+     "hasshin": "天"
+    }
+   ]
+  }
+ ]
+}

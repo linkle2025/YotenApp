@@ -9,6 +9,7 @@ import { lastTermAtOrBefore, toMinutes } from '../src/calendar';
 import {
   Dec,
   calculateMeishiki,
+  LEGACY_OPTIONS,
   calculateSkillSheet,
   getRank,
   loadDefaultRules,
@@ -138,7 +139,7 @@ describe('現行の Python 版との比較（鑑定スキル表）', () => {
           hourUnknown: hour === null,
           birthPlace: prefectureFromLegacyCity(city).code,
           gender,
-        }),
+        }, LEGACY_OPTIONS),
       );
       compared += 1;
       const actual = {

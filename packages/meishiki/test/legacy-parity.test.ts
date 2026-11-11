@@ -4,6 +4,7 @@
  * test/fixtures/legacy.json.gz は scripts/export_legacy_fixtures.py で現行版から作ったデータ（11,395件）。
  * 全節入りの前後と乱数の日時について、TypeScript 版が同じ結果になることを確かめる。
  *
+ * 現行版と同じ決まり（LEGACY_OPTIONS）で計算して比べる。既定の決まりはお手本サイトに合わせてあり、現行版とは違う。
  * 意図的に結果を変えた箇所（付録A・付録B）は、比較から外すか、変更後の形に合わせて比べる。
  * - 時間不明で、現行の補正によって日付や節が変わるケース（現行の不具合）
  * - 1月1日〜小寒前（現行の不具合）
@@ -14,7 +15,7 @@ import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { lastTermAtOrBefore, toMinutes, type CivilDateTime } from '../src/calendar';
-import { calculateMeishiki, prefectureFromLegacyCity, type Pillar } from '../src';
+import { calculateMeishiki, LEGACY_OPTIONS, prefectureFromLegacyCity, type Pillar } from '../src';
 
 interface LegacyCase {
   in: [number, number, number, number | null, number | null, string, 'male' | 'female'];
@@ -80,7 +81,7 @@ describe('現行の Python 版との比較', () => {
         hourUnknown: hour === null,
         birthPlace: prefectureFromLegacyCity(city).code,
         gender,
-      });
+      }, LEGACY_OPTIONS);
       compared += 1;
 
       const label = `${c.in.join(' ')}`;

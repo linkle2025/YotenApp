@@ -130,15 +130,10 @@ export interface KimonBoardDetail {
   targetPosition: PalacePosition;
   /** 直使（八門） */
   chokushi: {
-    /** 直使の門（地盤の旬首の宮の定位の門。中宮なら坤二宮の門。時支飛宮のときは休門） */
+    /** 直使の門（地盤の旬首の宮の定位の門。中宮なら坤二宮の門） */
     mon: Hachimon;
-    /** 直使を置いた宮 */
+    /** 直使を置いた宮（旬首の宮から用事干の「干の数−1」だけ飛ばした宮。中宮なら坤二宮） */
     position: PalacePosition;
-    /**
-     * 時支飛宮を使ったか（時盤で旬首が中宮のとき、坎一宮の休門から時支の序数だけ飛ばす）。
-     * 使わないときは用事干の「干の数」だけ飛ばす
-     */
-    branchFly: boolean;
   };
   /** 大直符（九星） */
   chokufu: {
@@ -205,16 +200,19 @@ export function layoutKimonBoard(
   const placement: PalacePosition = targetPosition === 5 ? KUN_PALACE : targetPosition;
 
   // ③ 天盤干：用事干の宮に旬首を置き、地盤の旬首から時計回りに見た地盤干（A）を順に並べる
-  const tenbanSingle = new Map<PalacePosition, Stem>();
+  // 旬首が中宮にあるときは、中宮は坤二宮に寄る（坤二宮の地盤干が中宮の旬首と一緒に動く）。
+  // お手本サイトとの照合（2026-11-11）で確認。現行版は坤二宮の干を落としていた。
+  const junshuAtCenter = junshuJibanPosition === 5;
   const junshuTenbanPosition = placement;
-  tenbanSingle.set(junshuTenbanPosition, junshu);
-  const a = CLOCKWISE_FROM[junshuJibanPosition].map((p) => jiban[p]);
+  const tenbanSingle = new Map<PalacePosition, Stem>();
+  const a = CLOCKWISE_FROM[junshuAtCenter ? KUN_PALACE : junshuJibanPosition].map((p) => jiban[p]);
+  tenbanSingle.set(junshuTenbanPosition, junshuAtCenter ? a[0]! : junshu);
   CLOCKWISE_FROM[junshuTenbanPosition].forEach((p, i) => {
     if (i > 0 && i < a.length) tenbanSingle.set(p, a[i]!);
   });
   const tenban = emptyRecord<Stem[]>(() => []);
   for (const [p, kan] of tenbanSingle) tenban[p] = [kan];
-  // 中宮の地盤干を複製し、坤二宮の地盤干と同じ天盤干の宮（B）に添える
+  // 中宮の地盤干を複製し、坤二宮の地盤干と同じ天盤干の宮（B）に添える（旬首が中宮なら、その旬首が添わる）
   let centerCopyPosition: PalacePosition | null = null;
   for (const [p, kan] of tenbanSingle) {
     if (kan === jiban[2]) {
@@ -226,22 +224,16 @@ export function layoutKimonBoard(
   // 中宮の干支（用事干が中宮のとき）
   const chugan = targetPosition === 5 ? `${stem}${branch}` : null;
 
-  // ④ 八門：直使を決めて置き、そこから時計回りに八門の順で置く
-  const branchFly = junshuJibanPosition === 5 && type === '時盤';
-  let chokushiMon: Hachimon;
-  let chokushiPosition: PalacePosition;
-  if (branchFly) {
-    chokushiMon = HACHIMON_TEII[1]!; // 坎一宮の休門
-    chokushiPosition = fly(1, BRANCHES.indexOf(branch), yinYang); // 子=1 なので (序数-1) 進む
-  } else {
-    const teiiPosition = junshuJibanPosition === 5 ? KUN_PALACE : junshuJibanPosition;
-    chokushiMon = HACHIMON_TEII[teiiPosition]!;
-    chokushiPosition = fly(teiiPosition, KAN_NO_KAZU[stem] - 1, yinYang);
-  }
+  // ④ 八門：直使（旬首の宮の定位の門。中宮なら坤二宮の門）を、旬首の宮から用事干までの時間の数だけ
+  // 飛ばした宮に置き、そこから時計回りに八門の順で置く。中宮に着いたら坤二宮に寄せる。
+  // お手本サイトとの照合（2026-11-11）で確認。現行版は、旬首が中宮のとき坎一宮の休門を地支の数で飛ばし、
+  // 直使が中宮に着いたときは中宮に門を入れていた。
+  const chokushiMon: Hachimon = HACHIMON_TEII[junshuAtCenter ? KUN_PALACE : junshuJibanPosition]!;
+  const landed = fly(junshuJibanPosition, KAN_NO_KAZU[stem] - 1, yinYang);
+  const chokushiPosition: PalacePosition = landed === 5 ? KUN_PALACE : landed;
   const hachimon = emptyRecord<Hachimon | null>(() => null);
   hachimon[chokushiPosition] = chokushiMon;
   const monIndex = HACHIMON_ORDER.indexOf(chokushiMon);
-  // 直使が中宮に来たとき、たどる順は坤二宮から始まり、坤二宮には門が入らない（現行版のまま）
   CLOCKWISE_FROM[chokushiPosition].forEach((p, i) => {
     if (i > 0) hachimon[p] = HACHIMON_ORDER[(monIndex + i) % 8]!;
   });
@@ -277,7 +269,7 @@ export function layoutKimonBoard(
       junshuJibanPosition,
       junshuTenbanPosition,
       targetPosition,
-      chokushi: { mon: chokushiMon, position: chokushiPosition, branchFly },
+      chokushi: { mon: chokushiMon, position: chokushiPosition },
       chokufu: { star: chokufuStar, position: placement },
       hasshinStartPosition: placement,
       centerCopyPosition,
