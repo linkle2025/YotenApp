@@ -160,7 +160,8 @@ function PalaceCell({
           })}
           {palace.chugan && <span className="ml-1 text-xs font-normal text-muted">{palace.chugan}</span>}
         </span>
-        <span className="text-muted">{palace.kyusei ?? ""}</span>
+        {/* 天禽（中宮の星）は中宮が坤に寄るため、芮に添えて「芮禽」と書く（お手本サイトと同じ） */}
+        <span className="text-muted">{palace.kyusei === "芮" ? "芮禽" : (palace.kyusei ?? "")}</span>
       </span>
       <span className={`text-center font-serif font-bold ${compact ? "text-lg" : "text-3xl"} ${HACHIMON_COLOR[palace.hachimon ?? ""] ?? ""}`}>
         {palace.hachimon ?? ""}
