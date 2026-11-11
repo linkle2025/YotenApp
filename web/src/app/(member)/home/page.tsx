@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import type { MeishikiResult } from "@yoten/meishiki";
 import { Notice } from "@/components/notice";
 import { requireUser } from "@/lib/auth";
+import { getStems } from "@/lib/master";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "ホーム" };
@@ -35,20 +36,22 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/home">[
   const user = await requireUser("/home");
   const { notice } = await searchParams;
 
+  // 本人の命式と最近の記録は同時に取る（順番に待たない）
   const supabase = await createClient();
-  const { data: self } = user.selfReadingId
-    ? await supabase.from("readings").select("id, result").eq("id", user.selfReadingId).maybeSingle()
-    : { data: null };
+  const [{ data: self }, { data: recent }, stems] = await Promise.all([
+    user.selfReadingId
+      ? supabase.from("readings").select("id, result").eq("id", user.selfReadingId).maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("readings")
+      .select("id, name, created_at, result->>dayStem")
+      .eq("is_self", false)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    getStems(),
+  ]);
   const result = self?.result as MeishikiResult | undefined;
-  const { data: stem } = result
-    ? await supabase.from("stems").select("element_type").eq("name", result.dayStem).maybeSingle()
-    : { data: null };
-  const { data: recent } = await supabase
-    .from("readings")
-    .select("id, name, created_at, result->>dayStem")
-    .eq("is_self", false)
-    .order("created_at", { ascending: false })
-    .limit(5);
+  const stem = result ? stems.find((s) => s.name === result.dayStem) : undefined;
 
   return (
     <div className="space-y-6">

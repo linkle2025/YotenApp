@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,8 +17,9 @@ export type CurrentUser = {
  * ログイン中の会員（いなければ null）
  * Cookie を読むので、呼ぶ画面の部品は <Suspense> の内側に置く。
  * 利用停止中の会員は、ログインしていない扱いにする。
+ * 1回のリクエストの中では結果を使い回す（ヘッダーと画面の両方で呼んでも、データベースへの問い合わせは1回）。
  */
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
@@ -37,7 +39,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     role: profile.role as Role,
     selfReadingId: profile.self_reading_id,
   };
-}
+});
 
 /** 会員の画面用：ログインしていなければログイン画面へ（戻り先付き） */
 export async function requireUser(currentPath: string): Promise<CurrentUser> {
