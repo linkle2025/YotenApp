@@ -26,9 +26,11 @@ describe('基準ケース（付録A A.3）', () => {
     expect(r.taiun?.direction).toBe('逆運');
     expect(r.taiun?.ritsuun).toBe(2);
     expect(r.pillars.hour?.stemStar).toBe('傷官');
-    // 既定は経度差だけで補正する（岐阜 +7分）。均時差は使わない（お手本サイトと同じ）
-    expect(r.correction).toMatchObject({ longitudeMinutes: 7, equationOfTimeMinutes: 0 });
-    expect(r.correction.adjusted).toEqual({ year: 1985, month: 5, day: 10, hour: 11, minute: 37 });
+    // 既定は経度差＋均時差で補正する（岐阜 +7分、5月 +3分）
+    expect(r.correction).toMatchObject({ longitudeMinutes: 7, equationOfTimeMinutes: 3 });
+    expect(r.correction.adjusted).toEqual({ year: 1985, month: 5, day: 10, hour: 11, minute: 40 });
+    // 均時差を外すと経度差だけ（お手本サイトと同じ）
+    expect(calculateMeishiki(input, { equationOfTimeCorrection: false }).correction.adjusted.minute).toBe(37);
   });
 
   it('日干から見たグループと身旺身弱', () => {

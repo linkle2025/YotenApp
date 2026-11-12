@@ -1,7 +1,9 @@
 /**
  * お手本サイトとの照合（付録D No.1〜38。2026-11-11 に画面から書き写した結果）
  *
- * 四柱と大運（立運の年齢と干支）が、既定の決まりでお手本サイトと一致することを確かめる。
+ * 四柱と大運（立運の年齢と干支）が、お手本サイトと一致することを確かめる。
+ * お手本サイトは経度差だけで補正するため、ここでは均時差の補正を外して比べる
+ * （新版の既定は経度差＋均時差。均時差を入れると No.3 の時柱だけが変わる：壬午→辛巳）。
  * 境目の設定（23時／24時）を両方撮ったケースは、それぞれの設定で比べる。
  * 蔵干（午・酉など）は流派の違いがあり要確認（付録C Q28）のため、ここでは比べない。
  * 五行の点数は、お手本サイトが計算方法を変えてあるため比べない。
@@ -26,7 +28,7 @@ describe('お手本サイトとの照合（命式）', () => {
   it('48件', () => expect(cases).toHaveLength(48));
 
   it.each(cases.map((c) => [c.case, c] as const))('%s', (_label, c) => {
-    const r = calculateMeishiki(c.input, { dayBoundary: c.dayBoundary });
+    const r = calculateMeishiki(c.input, { dayBoundary: c.dayBoundary, equationOfTimeCorrection: false });
     const p = r.pillars;
     expect([p.year, p.month, p.day, p.hour].map((x) => (x ? x.stem + x.branch : null))).toEqual(c.pillars);
     // 2040年末は、次の節入りのデータがなく大運を出せない（お手本サイトは出している）

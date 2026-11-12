@@ -10,8 +10,10 @@ import { ExplainProvider, ExplainTrigger } from "@/components/reading/explain-pa
 import { InsightPanel } from "@/components/reading/insight-panel";
 import { ReadingActions } from "@/components/reading/reading-actions";
 import { SkillSheetView } from "@/components/reading/skill-sheet";
+import { TaiunView } from "@/components/reading/taiun";
 import Image from "next/image";
 import { requireUser } from "@/lib/auth";
+import { japanNow } from "@/lib/birth";
 import { isInsightAvailable, insightConfig } from "@/lib/insight/config";
 import { countTodayGenerations, getCurrentInsight } from "@/lib/insight/service";
 import { getStars, getStems, stemImage } from "@/lib/master";
@@ -76,6 +78,9 @@ async function ReadingContent({
   const title = reading.name ? `${reading.name}さん` : "無題の鑑定";
   const [y, m, d] = reading.birth_date.split("-").map(Number);
   const time = reading.hour_unknown ? "時刻不明" : reading.birth_time?.slice(0, 5);
+  const now = japanNow();
+  const age =
+    now.getUTCFullYear() - y - (now.getUTCMonth() + 1 < m || (now.getUTCMonth() + 1 === m && now.getUTCDate() < d) ? 1 : 0);
   const place = getPrefecture(reading.birth_place).name;
   const gender = reading.gender === "female" ? "女性" : "男性";
   const correction = result.correction.applied
@@ -137,6 +142,7 @@ async function ReadingContent({
           { href: "#skill", label: "スキル表" },
           { href: "#meishiki", label: "命式" },
           { href: "#gogyo", label: "五行" },
+          { href: "#taiun", label: "大運" },
         ].map((t) => (
           <a key={t.href} href={t.href} className="rounded-full border border-border bg-surface px-4 py-1.5 text-sm whitespace-nowrap">
             {t.label}
@@ -181,6 +187,14 @@ async function ReadingContent({
             </h2>
             <div className="mt-4">
               <FiveElements result={result} />
+            </div>
+          </section>
+          <section id="taiun" className={`${card} scroll-mt-16`} aria-labelledby="taiun-title">
+            <h2 id="taiun-title" className={sectionTitle}>
+              大運
+            </h2>
+            <div className="mt-4">
+              <TaiunView result={result} age={Math.max(0, age)} />
             </div>
           </section>
         </div>

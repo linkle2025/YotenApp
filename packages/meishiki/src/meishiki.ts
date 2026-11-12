@@ -51,7 +51,7 @@ import {
 import { EQUATION_OF_TIME_MINUTES, getPrefecture, type Prefecture } from './places';
 
 /** 計算ロジックの版。結果と一緒に保存し、ロジックを直したときの再計算の目印にする */
-export const CALC_VERSION = 'meishiki-0.2.0';
+export const CALC_VERSION = 'meishiki-0.3.0';
 
 export type Gender = 'male' | 'female';
 
@@ -71,12 +71,16 @@ export interface MeishikiInput {
 
 /**
  * 計算の決まり。既定値はお手本サイトとの照合（2026-11-11、付録D）で確かめた決まり。
+ * ただし時刻の補正は、塾の決まりとして経度差＋均時差を使う（お手本サイトは経度差だけ）。
  * 現行版（旧版）の決まりは LEGACY_OPTIONS で再現できる（現行版との比較テスト用）。
  */
 export interface MeishikiOptions {
   /** 出生地の経度差で時刻を補正するか（既定 true） */
   longitudeCorrection?: boolean;
-  /** 均時差でも補正するか（既定 false：お手本サイトは経度差だけ。現行版は true） */
+  /**
+   * 均時差でも補正するか（既定 true：塾の決まり。2026-11-12 オーナー判断）。
+   * お手本サイトは経度差だけで補正している（照合テストでは false にして比べる）
+   */
   equationOfTimeCorrection?: boolean;
   /**
    * 年柱・月柱の節入りと比べる時刻（既定 'standard'）
@@ -449,7 +453,7 @@ type ResolvedOptions = Required<Omit<MeishikiOptions, 'lateNightRule'>>;
 function resolveOptions(options: MeishikiOptions): ResolvedOptions {
   return {
     longitudeCorrection: options.longitudeCorrection ?? true,
-    equationOfTimeCorrection: options.equationOfTimeCorrection ?? false,
+    equationOfTimeCorrection: options.equationOfTimeCorrection ?? true,
     termBasis: options.termBasis ?? 'standard',
     dayBoundary: options.dayBoundary ?? (options.lateNightRule === 'nextDay' ? '23' : '24'),
     lateNightHourStem: options.lateNightHourStem ?? 'nextDay',
