@@ -19,7 +19,7 @@ export function PlaceSelect({ places, value, week = 0 }: { places: { code: strin
           id={id}
           name="place"
           defaultValue={value}
-          onChange={(e) => startTransition(() => router.replace(`/kimon?place=${e.target.value}${week > 0 ? `&week=${week}` : ""}`, { scroll: false }))}
+          onChange={(e) => startTransition(() => router.replace(`/kimon?place=${e.target.value}${week !== 0 ? `&week=${week}` : ""}`, { scroll: false }))}
           className={`${inputClass(false)} appearance-auto`}
           aria-busy={pending}
         >
@@ -30,7 +30,7 @@ export function PlaceSelect({ places, value, week = 0 }: { places: { code: strin
           ))}
         </select>
       </div>
-      {week > 0 && <input type="hidden" name="week" value={week} />}
+      {week !== 0 && <input type="hidden" name="week" value={week} />}
       <noscript>
         <button type="submit" className="btn btn-secondary">
           表示

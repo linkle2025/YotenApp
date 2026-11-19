@@ -38,8 +38,9 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/kimon"
   const place =
     typeof params.place === "string" && PREFECTURES.some((p) => p.code === params.place) ? params.place : KIMON_PLACE_DEFAULT;
 
-  const weekParam = typeof params.week === "string" && /^\d{1,2}$/.test(params.week) ? Number(params.week) : 0;
-  const week = Math.min(weekParam, MAX_WEEK);
+  // week：0 が今日から7日間、正が先の週、負が過去の週（前後それぞれ MAX_WEEK 週まで）
+  const weekParam = typeof params.week === "string" && /^-?\d{1,2}$/.test(params.week) ? Number(params.week) : 0;
+  const week = Math.max(-MAX_WEEK, Math.min(weekParam, MAX_WEEK));
 
   const now = japanNow();
   const nowMinutes = toMinutes({
@@ -53,11 +54,10 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/kimon"
     toMinutes({ year: now.getUTCFullYear(), month: now.getUTCMonth() + 1, day: now.getUTCDate(), hour: 0, minute: 0 }) + week * 7 * 1440,
   );
   const result = findKichiHoui({ start: { year: first.year, month: first.month, day: first.day }, days: 7, place });
-  // 終わった時間は出さない。生門は◎・◯のつく方位だけを採用し（吉格はそのまま）、該当がない時間は出さない
+  // 生門は◎・◯のつく方位だけを採用し（吉格はそのまま）、該当がない時間は出さない。終わった時間も出す（過去を見返せるように）
   const days = result.days.map((d) => ({
     ...d,
     slots: d.slots
-      .filter((s) => toMinutes(s.end) > nowMinutes)
       .map((s) => ({ ...s, hits: s.hits.filter((h) => h.kind !== "生門" || h.mark !== null) }))
       .filter((s) => s.hits.length > 0),
   }));
@@ -76,7 +76,7 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/kimon"
     .lt("slot_start", rangeEnd);
   const practicedKeys = new Set((practiced ?? []).map((p) => practiceKey(place, String(p.slot_start).slice(0, 16), p.kind, p.position)));
 
-  const weekHref = (w: number) => `/kimon?${new URLSearchParams({ place, ...(w > 0 ? { week: String(w) } : {}) })}`;
+  const weekHref = (w: number) => `/kimon?${new URLSearchParams({ place, ...(w !== 0 ? { week: String(w) } : {}) })}`;
   const lastDay = fromMinutes(toMinutes({ ...first, hour: 0, minute: 0 }) + 6 * 1440);
   const range = `${first.month}月${first.day}日〜${lastDay.month}月${lastDay.day}日`;
 
@@ -105,15 +105,20 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/kimon"
       </div>
 
       <nav aria-label="週の切り替え" className="flex items-center justify-between gap-2">
-        {week > 0 ? (
+        {week > -MAX_WEEK ? (
           <Link href={weekHref(week - 1)} className="chip" scroll={false}>
             前の7日間
           </Link>
         ) : (
           <span />
         )}
-        <p className="text-sm font-bold">
-          {week === 0 ? "今日から" : `${week}週先`}　{range}
+        <p className="text-center text-sm font-bold">
+          {week === 0 ? "今日から" : week > 0 ? `${week}週先` : `${-week}週前`}　{range}
+          {week !== 0 && (
+            <Link href={weekHref(0)} className="link ml-2 text-xs" scroll={false}>
+              今日に戻る
+            </Link>
+          )}
         </p>
         {week < MAX_WEEK ? (
           <Link href={weekHref(week + 1)} className="chip" scroll={false}>
@@ -125,7 +130,7 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/kimon"
       </nav>
 
       {total === 0 && days.every((d) => !d.unavailable) && (
-        <p className="well p-5 text-center text-sm text-muted">この7日間に吉方位の時間はありません。次の7日間も見てみましょう。</p>
+        <p className="well p-5 text-center text-sm text-muted">この7日間に吉方位の時間はありません。前後の7日間も見てみましょう。</p>
       )}
 
       <ol className="space-y-5">
@@ -165,10 +170,11 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/kimon"
 function SlotRow({ slot, place, practicedKeys, nowMinutes }: { slot: KichiHouiSlot; place: string; practicedKeys: Set<string>; nowMinutes: number }) {
   const start = slotKey(slot.start);
   const started = toMinutes(slot.start) <= nowMinutes;
+  const ended = toMinutes(slot.end) <= nowMinutes;
   const best = slot.hits.find((h) => h.mark === "◎") ?? slot.hits.find((h) => h.mark === "◯") ?? null;
   const onlyKichikaku = slot.hits.every((h) => h.kind !== "生門");
   return (
-    <li className="flex items-center gap-3 rounded-[18px] bg-surface py-3 pr-2 pl-4 shadow-[0_1px_2px_rgba(31,27,22,.04)]">
+    <li className={`flex items-center gap-3 rounded-[18px] bg-surface py-3 pr-2 pl-4 shadow-[0_1px_2px_rgba(31,27,22,.04)] ${ended ? "opacity-70" : ""}`}>
       <span
         aria-hidden
         className={`flex size-11 shrink-0 items-center justify-center rounded-[13px] font-bold ${
@@ -187,6 +193,7 @@ function SlotRow({ slot, place, practicedKeys, nowMinutes }: { slot: KichiHouiSl
         <p className="font-bold tabular-nums">
           {time(slot.start)}〜{time(slot.end)}
           <span className="ml-2 text-xs font-normal text-muted">{slot.hourPillar}の刻</span>
+          {ended && <span className="tag ml-2">終了</span>}
         </p>
         <ul className="text-sm">
           {slot.hits.map((h) => (

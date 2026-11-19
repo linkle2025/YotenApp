@@ -64,6 +64,11 @@ export async function recordPractice(input: { place: string; start: string; kind
     });
   // 23505：すでに実践済み（二度押し）。そのまま成功として扱う
   if (error && error.code !== "23505") {
+    console.error(`吉方位の実践の記録に失敗しました: ${error.code} ${error.message}`);
+    // テーブルがない（マイグレーション未適用）ときは、原因が分かるようにする（42P01：PostgreSQL、PGRST205：PostgREST）
+    if (error.code === "42P01" || error.code === "PGRST205") {
+      return { ok: false, message: "実践履歴の保存先がまだ用意できていません（データベースの更新が未反映です）。管理者にお知らせください。" };
+    }
     return { ok: false, message: "記録できませんでした。時間をおいて、もう一度お試しください。" };
   }
   revalidatePath("/kimon");
