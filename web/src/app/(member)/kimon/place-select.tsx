@@ -5,7 +5,7 @@ import { useId, useTransition } from "react";
 import { inputClass } from "@/components/form";
 
 /** 場所の選択。選んだらすぐに表示し直す（JavaScript がなくても［表示］で送れる） */
-export function PlaceSelect({ places, value }: { places: { code: string; name: string }[]; value: string }) {
+export function PlaceSelect({ places, value, week = 0 }: { places: { code: string; name: string }[]; value: string; week?: number }) {
   const id = useId();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -19,7 +19,7 @@ export function PlaceSelect({ places, value }: { places: { code: string; name: s
           id={id}
           name="place"
           defaultValue={value}
-          onChange={(e) => startTransition(() => router.replace(`/kimon?place=${e.target.value}`, { scroll: false }))}
+          onChange={(e) => startTransition(() => router.replace(`/kimon?place=${e.target.value}${week > 0 ? `&week=${week}` : ""}`, { scroll: false }))}
           className={`${inputClass(false)} appearance-auto`}
           aria-busy={pending}
         >
@@ -30,6 +30,7 @@ export function PlaceSelect({ places, value }: { places: { code: string; name: s
           ))}
         </select>
       </div>
+      {week > 0 && <input type="hidden" name="week" value={week} />}
       <noscript>
         <button type="submit" className="btn btn-secondary">
           表示

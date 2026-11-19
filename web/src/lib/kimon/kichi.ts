@@ -14,3 +14,16 @@ export function kimonBoardHref(t: CivilDateTime, place: string) {
   });
   return `/kimon/board?${q}`;
 }
+
+/** 時間の始まりを「2026-11-20T09:00」の形にする（実践履歴との突き合わせに使う。その場所の時計） */
+export function slotKey(t: CivilDateTime) {
+  return `${t.year}-${pad2(t.month)}-${pad2(t.day)}T${pad2(t.hour)}:${pad2(t.minute)}`;
+}
+
+/** 実践した吉方位の目印（場所・時間・理由・宮の位置） */
+export function practiceKey(place: string, start: string, kind: string, position: number) {
+  return `${place}|${start}|${kind}|${position}`;
+}
+
+/** 先の週まで見られる上限（1年分） */
+export const MAX_WEEK = 52;

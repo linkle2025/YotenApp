@@ -3,7 +3,7 @@
 -- 仕様: 新仕様書/03_構造.md 3.5・3.7
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(29);
+select plan(36);
 
 -- ---------------------------------------------------------------------------
 -- 準備：会員A・会員B・管理者（auth.users に入れると profiles が自動で作られる）
@@ -19,6 +19,10 @@ insert into public.readings (id, owner_id, name, birth_date, birth_time, hour_un
   ('10000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-00000000000b', 'Bの記録', '1990-03-10', null, true, '27', 'female', '{}', 'test');
 insert into public.insights (reading_id, input_hash, prompt_version, model_name, content, created_by) values
   ('10000000-0000-0000-0000-00000000000b', 'h', 'v2', 'm', '{}', '00000000-0000-0000-0000-00000000000b');
+
+insert into public.kimon_practices (id, owner_id, place, slot_start, slot_end, hour_pillar, kind, position, direction, mark, score) values
+  ('20000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-00000000000a', '23', '2026-11-20 09:00', '2026-11-20 11:00', '乙巳', '生門', 9, '南', '◎', 80),
+  ('20000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-00000000000b', '23', '2026-11-20 09:00', '2026-11-20 11:00', '乙巳', '生門', 9, '南', '◎', 80);
 
 select is((select display_name from public.profiles where id = '00000000-0000-0000-0000-00000000000a'), '会員A',
   '会員登録でプロフィールが自動で作られる');
@@ -46,6 +50,18 @@ select throws_ok($$ update public.readings set result = '{"fake":true}' $$, '425
 select throws_ok($$ insert into public.readings (owner_id, birth_date, birth_place, gender, result, calc_version, hour_unknown)
   values ('00000000-0000-0000-0000-00000000000a', '1990-01-01', '13', 'male', '{}', 'x', true) $$, '42501', null,
   '鑑定記録は会員からは作れない（サーバーが作る）');
+
+select is((select count(*)::int from public.kimon_practices), 1, '会員は自分の実践履歴だけが見える');
+select lives_ok($$ update public.kimon_practices set memo = '良いことがあった' where id = '20000000-0000-0000-0000-00000000000a' $$,
+  '自分の実践履歴のメモは書ける');
+select is((select memo from public.kimon_practices where id = '20000000-0000-0000-0000-00000000000a'), '良いことがあった', 'メモが保存されている');
+select throws_ok($$ update public.kimon_practices set direction = '北' where id = '20000000-0000-0000-0000-00000000000a' $$, '42501', null,
+  'メモ以外の列（方角など）は会員からは変えられない');
+select throws_ok($$ insert into public.kimon_practices (owner_id, place, slot_start, slot_end, hour_pillar, kind, position, direction)
+  values ('00000000-0000-0000-0000-00000000000a', '23', '2026-11-21 09:00', '2026-11-21 11:00', '丙午', '生門', 9, '南') $$, '42501', null,
+  '実践履歴は会員からは作れない（サーバーが作る）');
+update public.kimon_practices set memo = '乗っ取り' where id = '20000000-0000-0000-0000-00000000000b';
+delete from public.kimon_practices where id = '20000000-0000-0000-0000-00000000000b';
 
 -- 他人の記録は、変更・削除しても0件（見えないため）
 update public.readings set name = '乗っ取り' where id = '10000000-0000-0000-0000-00000000000b';
@@ -87,6 +103,7 @@ select set_config('request.jwt.claims', '{"role":"anon"}', true);
 select is((select count(*)::int from public.stems), 10, '十干の解説は誰でも読める');
 select is((select count(*)::int from public.stars), 10, '通変星の解説は誰でも読める');
 select throws_ok($$ select count(*) from public.profiles $$, '42501', null, '未ログインではプロフィールを読めない');
+select throws_ok($$ select count(*) from public.kimon_practices $$, '42501', null, '未ログインでは実践履歴を読めない');
 select throws_ok($$ select public.is_admin() $$, '42501', null, '未ログインでは is_admin() を呼べない');
 select throws_ok($$ select * from public.admin_list_users() $$, '42501', null, '未ログインでは会員一覧の関数を呼べない');
 select throws_ok($$ select public.admin_update_user('10000000-0000-0000-0000-00000000000b'::uuid, 'admin', null) $$, '42501', null,
@@ -99,6 +116,8 @@ select throws_ok($$ select public.handle_new_user() $$, '42501', null, 'トリ�
 reset role;
 select is((select name from public.readings where id = '10000000-0000-0000-0000-00000000000b'), 'Bの記録',
   '他人の記録は変更も削除もされていない');
+select is((select memo from public.kimon_practices where id = '20000000-0000-0000-0000-00000000000b'), '',
+  '他人の実践履歴は、メモの変更も削除もされていない');
 
 select * from finish();
 rollback;

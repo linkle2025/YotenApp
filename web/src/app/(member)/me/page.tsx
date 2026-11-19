@@ -44,6 +44,11 @@ async function MyPageContent({ searchParams }: { searchParams: PageProps<"/me">[
         </Link>
       </nav>
       <nav className="card divide-y divide-subtle overflow-hidden">
+        <Link href="/me/practices" className={item}>
+          吉方位の実践履歴<ChevronRight size={18} aria-hidden className="text-muted" />
+        </Link>
+      </nav>
+      <nav className="card divide-y divide-subtle overflow-hidden">
         <Link href="/jikkan" className={item}>
           十干の解説<ChevronRight size={18} aria-hidden className="text-muted" />
         </Link>
