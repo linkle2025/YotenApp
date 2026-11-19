@@ -94,7 +94,7 @@ async function BoardContent({ searchParams }: { searchParams: PageProps<"/kimon/
         {kichikakuHits.map((h) => (
           <p key={`${h.kind}-${h.position}`} className="rounded-[14px] bg-water-tint px-4 py-3 text-sm">
             <span className="font-bold text-water">{h.kind}</span>が<span className="font-bold">{h.direction}</span>
-            で成立しています（凶格なし）。
+            （{board.palaces.find((p) => p.position === h.position)?.hachimon}門）で成立しています（凶格なし）。
           </p>
         ))}
       </header>

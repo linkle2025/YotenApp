@@ -6,16 +6,19 @@
  * - その宮に凶格が1つもない
  * - その時間が五不遇時ではない
  * 生門が南（離宮）なら ◎、北東（艮宮）・南西（坤宮）なら ◯ を付ける。
- * あわせて、吉格（風遁・玉女守門）が成立している宮も、その宮に凶格がなく五不遇時でもなければ載せる
- * （点数は問わない。2026-11-19 オーナーの指定）。
+ * あわせて、吉格（風遁・玉女守門）が成立している宮も、その宮の八門が三吉門（休・生・開）で、
+ * 凶格がなく、五不遇時でもなければ載せる（点数は問わない。2026-11-19 オーナーの指定）。
  *
  * 時間は、時盤の時柱（2時間ごとの十二支の刻）を単位にする。場所による時刻の補正（経度差＋均時差）を
  * 戻して、その場所の時計での始まり・終わりを出す。盤は各刻の真ん中の時刻で作る。
  */
 import { fromMinutes, toMinutes, type CivilDate, type CivilDateTime } from './calendar';
 import { calculateKimonTonkou, KimonInputError, KIMON_DEFAULT_PLACE, type KimonPalace, type KimonResult } from './kimon';
-import { PALACE_INFO, type PalacePosition } from './kimonBoard';
+import { PALACE_INFO, type Hachimon, type PalacePosition } from './kimonBoard';
 import { EQUATION_OF_TIME_MINUTES, getPrefecture } from './places';
+
+/** 三吉門（休・生・開）。吉格はこの門の宮で成立したときだけ吉方位にする */
+const SANKICHIMON: readonly Hachimon[] = ['休', '生', '開'];
 
 /** 吉方位とみなす生門の宮の点数（以上） */
 export const KICHI_HOUI_MIN_SCORE = 70;
@@ -102,7 +105,9 @@ export function kichiHouiHits(board: KimonResult): KichiHouiHit[] {
   const sei = usable.find((p) => p.hachimon === '生');
   if (sei && sei.score !== null && sei.score >= KICHI_HOUI_MIN_SCORE) hits.push(hit('生門', sei));
   for (const kind of ['風遁', '玉女守門'] as const) {
-    for (const p of usable) if (p.kichikaku.includes(kind)) hits.push(hit(kind, p));
+    for (const p of usable) {
+      if (p.kichikaku.includes(kind) && p.hachimon !== null && SANKICHIMON.includes(p.hachimon)) hits.push(hit(kind, p));
+    }
   }
   return hits;
 }

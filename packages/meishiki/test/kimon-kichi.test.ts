@@ -40,6 +40,7 @@ describe('吉方位さがし（findKichiHoui）', () => {
           expect(hit.mark).toBe(kichiHouiMark(palace.position));
         } else {
           expect(palace.kichikaku).toContain(hit.kind);
+          expect(['休', '生', '開']).toContain(palace.hachimon);
           expect(hit.mark).toBeNull();
         }
       }
@@ -61,17 +62,19 @@ describe('吉方位さがし（findKichiHoui）', () => {
         (x) =>
           x.position !== 5 &&
           x.kyokaku.length === 0 &&
-          ((x.hachimon === '生' && x.score !== null && x.score >= 70) || x.kichikaku.length > 0),
+          ((x.hachimon === '生' && x.score !== null && x.score >= 70) ||
+            (x.kichikaku.length > 0 && ['休', '生', '開'].includes(x.hachimon ?? ''))),
       );
       if (ok) expected.push(`${start.hour}:${start.minute}`);
     }
     expect(result.days[0]!.slots.map((s) => `${s.start.hour}:${s.start.minute}`)).toEqual(expected);
   });
 
-  it('風遁・玉女守門も拾い、凶格のある宮の吉格は拾わない（2026年の時盤を総当たり）', () => {
+  it('風遁・玉女守門も拾い、凶格のある宮・三吉門でない宮の吉格は拾わない（2026年の時盤を総当たり）', () => {
     let fuuton = 0;
     let gyokujo = 0;
     let blocked = 0;
+    let notSankichi = 0;
     for (let m = 1; m <= 12; m++) {
       for (let d = 1; d <= 28; d++) {
         for (let h = 0; h < 24; h += 2) {
@@ -80,6 +83,10 @@ describe('吉方位さがし（findKichiHoui）', () => {
           fuuton += hits.filter((x) => x.kind === '風遁').length;
           gyokujo += hits.filter((x) => x.kind === '玉女守門').length;
           for (const p of board.palaces) {
+            if (p.kichikaku.length > 0 && !['休', '生', '開'].includes(p.hachimon ?? '')) {
+              notSankichi++;
+              expect(hits.some((x) => x.position === p.position && x.kind !== '生門')).toBe(false);
+            }
             if (p.kichikaku.length > 0 && (p.kyokaku.length > 0 || board.gobuuji)) {
               blocked++;
               expect(hits.some((x) => x.position === p.position && x.kind !== '生門')).toBe(false);
@@ -91,6 +98,7 @@ describe('吉方位さがし（findKichiHoui）', () => {
     expect(fuuton).toBeGreaterThan(0);
     expect(gyokujo).toBeGreaterThan(0);
     expect(blocked).toBeGreaterThan(0);
+    expect(notSankichi).toBeGreaterThan(0);
   });
 
   it('印：南は◎、北東・南西は◯、それ以外はなし', () => {

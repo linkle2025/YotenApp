@@ -69,10 +69,10 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/kimon"
           <dt>
             <span className="tag bg-water-tint text-water">吉格</span>
           </dt>
-          <dd>風遁・玉女守門が成立している時間</dd>
+          <dd>風遁・玉女守門が三吉門（休・生・開）の方位で成立している時間</dd>
         </dl>
         <p className="text-xs text-muted">
-          吉方位：生門のある方位の点数が{KICHI_HOUI_MIN_SCORE}点以上の時間と、風遁・玉女守門が成立している時間です。どちらも、その方位に凶格がなく、五不遇時でもないときに限ります。時刻は{result.placeName}
+          吉方位：生門のある方位の点数が{KICHI_HOUI_MIN_SCORE}点以上の時間と、風遁・玉女守門が三吉門（休・生・開）の方位で成立している時間です。どちらも、その方位に凶格がなく、五不遇時でもないときに限ります。時刻は{result.placeName}
           の時計の時刻です（場所の経度と季節による時刻のずれを補正しています）。
         </p>
       </div>
