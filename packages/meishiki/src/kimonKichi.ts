@@ -6,12 +6,14 @@
  * - その宮に凶格が1つもない
  * - その時間が五不遇時ではない
  * 生門が南（離宮）なら ◎、北東（艮宮）・南西（坤宮）なら ◯ を付ける。
+ * あわせて、吉格（風遁・玉女守門）が成立している宮も、その宮に凶格がなく五不遇時でもなければ載せる
+ * （点数は問わない。2026-11-19 オーナーの指定）。
  *
  * 時間は、時盤の時柱（2時間ごとの十二支の刻）を単位にする。場所による時刻の補正（経度差＋均時差）を
  * 戻して、その場所の時計での始まり・終わりを出す。盤は各刻の真ん中の時刻で作る。
  */
 import { fromMinutes, toMinutes, type CivilDate, type CivilDateTime } from './calendar';
-import { calculateKimonTonkou, KimonInputError, KIMON_DEFAULT_PLACE } from './kimon';
+import { calculateKimonTonkou, KimonInputError, KIMON_DEFAULT_PLACE, type KimonPalace, type KimonResult } from './kimon';
 import { PALACE_INFO, type PalacePosition } from './kimonBoard';
 import { EQUATION_OF_TIME_MINUTES, getPrefecture } from './places';
 
@@ -27,19 +29,29 @@ export function kichiHouiMark(position: PalacePosition): KichiHouiMark {
   return null;
 }
 
+/** 吉方位の理由。生門（70点以上）か、吉格（風遁・玉女守門） */
+export type KichiHouiKind = '生門' | '風遁' | '玉女守門';
+
+export interface KichiHouiHit {
+  kind: KichiHouiKind;
+  /** 宮の位置 */
+  position: PalacePosition;
+  /** 方角（南・北東など） */
+  direction: string;
+  /** 宮の点数 */
+  score: number;
+  /** 生門の方角による印（吉格は null） */
+  mark: KichiHouiMark;
+}
+
 export interface KichiHouiSlot {
   /** その場所の時計での始まり・終わり（終わりは次の刻の始まりと同じ時刻） */
   start: CivilDateTime;
   end: CivilDateTime;
   /** 時柱の干支（甲子など） */
   hourPillar: string;
-  /** 生門のある宮 */
-  position: PalacePosition;
-  /** 方角（南・北東など） */
-  direction: string;
-  /** 生門の宮の点数 */
-  score: number;
-  mark: KichiHouiMark;
+  /** この時間の吉方位（生門が先、続いて吉格） */
+  hits: KichiHouiHit[];
   /** 「時盤を表示」で同じ盤を作り直すための時刻（その場所の時計。刻の真ん中） */
   boardTime: CivilDateTime;
 }
@@ -71,6 +83,28 @@ const SLOT_MINUTES = 120;
 
 function sameDate(a: CivilDate, b: CivilDate): boolean {
   return a.year === b.year && a.month === b.month && a.day === b.day;
+}
+
+/**
+ * 1枚の時盤から吉方位を拾う。五不遇時の盤、凶格のある宮、中宮（方角がない）は除く
+ */
+export function kichiHouiHits(board: KimonResult): KichiHouiHit[] {
+  if (board.gobuuji) return [];
+  const hits: KichiHouiHit[] = [];
+  const hit = (kind: KichiHouiKind, palace: KimonPalace): KichiHouiHit => ({
+    kind,
+    position: palace.position,
+    direction: PALACE_INFO[palace.position].direction,
+    score: palace.score ?? 0,
+    mark: kind === '生門' ? kichiHouiMark(palace.position) : null,
+  });
+  const usable = board.palaces.filter((p) => p.position !== 5 && p.kyokaku.length === 0);
+  const sei = usable.find((p) => p.hachimon === '生');
+  if (sei && sei.score !== null && sei.score >= KICHI_HOUI_MIN_SCORE) hits.push(hit('生門', sei));
+  for (const kind of ['風遁', '玉女守門'] as const) {
+    for (const p of usable) if (p.kichikaku.includes(kind)) hits.push(hit(kind, p));
+  }
+  return hits;
 }
 
 /**
@@ -117,19 +151,14 @@ export function findKichiHoui(input: KichiHouiInput): KichiHouiResult {
       }
       throw error;
     }
-    if (board.gobuuji) continue;
-    const palace = board.palaces.find((p) => p.hachimon === '生');
-    if (!palace || palace.score === null) continue; // 生門が中宮に入った盤は点数がない
-    if (palace.score < KICHI_HOUI_MIN_SCORE || palace.kyokaku.length > 0) continue;
+    const hits = kichiHouiHits(board);
+    if (hits.length === 0) continue;
 
     day.slots.push({
       start,
       end: fromMinutes(localMid + SLOT_MINUTES / 2),
       hourPillar: `${board.usedPillar.stem}${board.usedPillar.branch}`,
-      position: palace.position,
-      direction: PALACE_INFO[palace.position].direction,
-      score: palace.score,
-      mark: kichiHouiMark(palace.position),
+      hits,
       boardTime,
     });
   }

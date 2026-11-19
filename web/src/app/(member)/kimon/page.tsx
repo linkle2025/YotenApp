@@ -66,9 +66,13 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/kimon"
             <span className="tag bg-primary-tint text-primary">◯</span>
           </dt>
           <dd>生門が北東・南西にある時間</dd>
+          <dt>
+            <span className="tag bg-water-tint text-water">吉格</span>
+          </dt>
+          <dd>風遁・玉女守門が成立している時間</dd>
         </dl>
         <p className="text-xs text-muted">
-          吉方位：生門のある方位の点数が{KICHI_HOUI_MIN_SCORE}点以上で、その方位に凶格がなく、五不遇時でもない時間です。時刻は{result.placeName}
+          吉方位：生門のある方位の点数が{KICHI_HOUI_MIN_SCORE}点以上の時間と、風遁・玉女守門が成立している時間です。どちらも、その方位に凶格がなく、五不遇時でもないときに限ります。時刻は{result.placeName}
           の時計の時刻です（場所の経度と季節による時刻のずれを補正しています）。
         </p>
       </div>
@@ -112,26 +116,48 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/kimon"
 }
 
 function SlotRow({ slot, place }: { slot: KichiHouiSlot; place: string }) {
+  const best = slot.hits.find((h) => h.mark === "◎") ?? slot.hits.find((h) => h.mark === "◯") ?? null;
+  const onlyKichikaku = slot.hits.every((h) => h.kind !== "生門");
   return (
     <li className="flex items-center gap-3 rounded-[18px] bg-surface py-3 pr-2 pl-4 shadow-[0_1px_2px_rgba(31,27,22,.04)]">
       <span
-        aria-label={slot.mark === "◎" ? "とくに良い（南）" : slot.mark === "◯" ? "良い（北東・南西）" : undefined}
-        className={`flex size-11 shrink-0 items-center justify-center rounded-[13px] text-lg font-bold ${
-          slot.mark === "◎" ? "bg-primary text-on-primary" : slot.mark === "◯" ? "bg-primary-tint text-primary" : "bg-subtle text-muted"
+        aria-hidden
+        className={`flex size-11 shrink-0 items-center justify-center rounded-[13px] font-bold ${
+          best?.mark === "◎"
+            ? "bg-primary text-lg text-on-primary"
+            : best?.mark === "◯"
+              ? "bg-primary-tint text-lg text-primary"
+              : onlyKichikaku
+                ? "bg-water-tint text-sm text-water"
+                : "bg-subtle text-muted"
         }`}
       >
-        {slot.mark ?? <span aria-hidden>・</span>}
+        {best?.mark ?? (onlyKichikaku ? "吉格" : "・")}
       </span>
       <div className="min-w-0 flex-1">
         <p className="font-bold tabular-nums">
           {time(slot.start)}〜{time(slot.end)}
+          <span className="ml-2 text-xs font-normal text-muted">{slot.hourPillar}の刻</span>
         </p>
-        <p className="text-sm">
-          <span className="font-bold">{slot.direction}</span>
-          <span className="ml-2 text-muted">
-            {slot.score}点・{slot.hourPillar}の刻
-          </span>
-        </p>
+        <ul className="text-sm">
+          {slot.hits.map((h) => (
+            <li key={`${h.kind}-${h.position}`} className="flex flex-wrap items-baseline gap-x-2">
+              <span className="font-bold">{h.direction}</span>
+              {h.kind === "生門" ? (
+                <span className="text-muted">
+                  {h.mark && (
+                    <span className="mr-1 font-bold text-primary" aria-label={h.mark === "◎" ? "とくに良い" : "良い"}>
+                      {h.mark}
+                    </span>
+                  )}
+                  生門 {h.score}点
+                </span>
+              ) : (
+                <span className="font-bold text-water">{h.kind}</span>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
       <Link href={kimonBoardHref(slot.boardTime, place)} className="link flex min-h-11 shrink-0 items-center gap-0.5 rounded-full px-3 text-sm hover:bg-subtle">
         時盤を表示

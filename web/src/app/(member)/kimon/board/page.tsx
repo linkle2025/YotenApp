@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ChevronLeft } from "lucide-react";
-import { calculateKimonTonkou, KICHI_HOUI_MIN_SCORE, KimonInputError, kichiHouiMark, PREFECTURES, type KimonResult } from "@yoten/meishiki";
+import { calculateKimonTonkou, KICHI_HOUI_MIN_SCORE, KimonInputError, kichiHouiHits, PREFECTURES, type KimonResult } from "@yoten/meishiki";
 import { KimonBoard } from "@/components/kimon/kimon-board";
 import { requireUser } from "@/lib/auth";
 import { KIMON_PLACE_DEFAULT, pad2 } from "@/lib/kimon/kichi";
@@ -68,9 +68,9 @@ async function BoardContent({ searchParams }: { searchParams: PageProps<"/kimon/
 
   const i = board.input;
   const sei = board.palaces.find((p) => p.hachimon === "生");
-  const isKichi =
-    !board.gobuuji && sei !== undefined && sei.score !== null && sei.score >= KICHI_HOUI_MIN_SCORE && sei.kyokaku.length === 0;
-  const mark = sei && isKichi ? kichiHouiMark(sei.position) : null;
+  const hits = kichiHouiHits(board);
+  const seiHit = hits.find((h) => h.kind === "生門");
+  const kichikakuHits = hits.filter((h) => h.kind !== "生門");
 
   return (
     <div className="space-y-4">
@@ -84,13 +84,19 @@ async function BoardContent({ searchParams }: { searchParams: PageProps<"/kimon/
           {board.usedPillar.branch}の刻・{board.yinYang}遁{board.kyokusu}局
         </p>
         {sei && (
-          <p className={`rounded-[14px] px-4 py-3 text-sm ${isKichi ? "bg-primary-tint" : "bg-bg"}`}>
-            {mark && <span className="mr-1 font-bold text-primary">{mark}</span>}
+          <p className={`rounded-[14px] px-4 py-3 text-sm ${seiHit ? "bg-primary-tint" : "bg-bg"}`}>
+            {seiHit?.mark && <span className="mr-1 font-bold text-primary">{seiHit.mark}</span>}
             生門は<span className="font-bold">{sei.direction}</span>
             {sei.score !== null && `（${sei.score}点）`}
-            {isKichi ? "。この時間の吉方位です。" : "。この時間は吉方位の条件を満たしていません。"}
+            {seiHit ? "。この時間の吉方位です。" : `。生門の吉方位の条件（${KICHI_HOUI_MIN_SCORE}点以上・凶格なし・五不遇時でない）は満たしていません。`}
           </p>
         )}
+        {kichikakuHits.map((h) => (
+          <p key={`${h.kind}-${h.position}`} className="rounded-[14px] bg-water-tint px-4 py-3 text-sm">
+            <span className="font-bold text-water">{h.kind}</span>が<span className="font-bold">{h.direction}</span>
+            で成立しています（凶格なし）。
+          </p>
+        ))}
       </header>
       <section className="card p-4 sm:p-5" aria-label="時盤">
         <KimonBoard board={board} />

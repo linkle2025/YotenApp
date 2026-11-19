@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { EQUATION_OF_TIME_MINUTES, calculateKimonTonkou, findKichiHoui, fromMinutes, kichiHouiMark, toMinutes } from '../src/index';
+import { EQUATION_OF_TIME_MINUTES, calculateKimonTonkou, findKichiHoui, fromMinutes, kichiHouiHits, kichiHouiMark, toMinutes } from '../src/index';
 
 describe('吉方位さがし（findKichiHoui）', () => {
   const result = findKichiHoui({ start: { year: 2026, month: 11, day: 19 }, days: 7, place: '23' });
@@ -22,18 +22,27 @@ describe('吉方位さがし（findKichiHoui）', () => {
     }
   });
 
-  it('見つけた時間は、作り直した時盤でも条件（生門70点以上・凶格なし・五不遇時でない）を満たす', () => {
+  it('見つけた時間は、作り直した時盤でも条件を満たす（生門70点以上か吉格、その宮に凶格なし、五不遇時でない）', () => {
     const slots = result.days.flatMap((d) => d.slots);
     expect(slots.length).toBeGreaterThan(0);
     for (const slot of slots) {
       const board = calculateKimonTonkou({ type: '時盤', ...slot.boardTime, place: '23' });
       expect(board.gobuuji).toBe(false);
-      const palace = board.palaces.find((p) => p.hachimon === '生')!;
-      expect(palace.position).toBe(slot.position);
-      expect(palace.score).toBe(slot.score);
-      expect(palace.score).toBeGreaterThanOrEqual(70);
-      expect(palace.kyokaku).toEqual([]);
       expect(`${board.usedPillar.stem}${board.usedPillar.branch}`).toBe(slot.hourPillar);
+      expect(slot.hits.length).toBeGreaterThan(0);
+      for (const hit of slot.hits) {
+        const palace = board.palaces.find((p) => p.position === hit.position)!;
+        expect(palace.kyokaku).toEqual([]);
+        expect(palace.position).not.toBe(5);
+        if (hit.kind === '生門') {
+          expect(palace.hachimon).toBe('生');
+          expect(palace.score).toBeGreaterThanOrEqual(70);
+          expect(hit.mark).toBe(kichiHouiMark(palace.position));
+        } else {
+          expect(palace.kichikaku).toContain(hit.kind);
+          expect(hit.mark).toBeNull();
+        }
+      }
     }
   });
 
@@ -47,12 +56,41 @@ describe('吉方位さがし（findKichiHoui）', () => {
       if (start.day !== 19) continue;
       const t = fromMinutes(mid);
       const board = calculateKimonTonkou({ type: '時盤', ...t, place: '23' });
-      const p = board.palaces.find((x) => x.hachimon === '生');
-      if (!board.gobuuji && p && p.score !== null && p.score >= 70 && p.kyokaku.length === 0) {
-        expected.push(`${start.hour}:${start.minute}`);
-      }
+      if (board.gobuuji) continue;
+      const ok = board.palaces.some(
+        (x) =>
+          x.position !== 5 &&
+          x.kyokaku.length === 0 &&
+          ((x.hachimon === '生' && x.score !== null && x.score >= 70) || x.kichikaku.length > 0),
+      );
+      if (ok) expected.push(`${start.hour}:${start.minute}`);
     }
     expect(result.days[0]!.slots.map((s) => `${s.start.hour}:${s.start.minute}`)).toEqual(expected);
+  });
+
+  it('風遁・玉女守門も拾い、凶格のある宮の吉格は拾わない（2026年の時盤を総当たり）', () => {
+    let fuuton = 0;
+    let gyokujo = 0;
+    let blocked = 0;
+    for (let m = 1; m <= 12; m++) {
+      for (let d = 1; d <= 28; d++) {
+        for (let h = 0; h < 24; h += 2) {
+          const board = calculateKimonTonkou({ type: '時盤', year: 2026, month: m, day: d, hour: h, minute: 0, place: '23' });
+          const hits = kichiHouiHits(board);
+          fuuton += hits.filter((x) => x.kind === '風遁').length;
+          gyokujo += hits.filter((x) => x.kind === '玉女守門').length;
+          for (const p of board.palaces) {
+            if (p.kichikaku.length > 0 && (p.kyokaku.length > 0 || board.gobuuji)) {
+              blocked++;
+              expect(hits.some((x) => x.position === p.position && x.kind !== '生門')).toBe(false);
+            }
+          }
+        }
+      }
+    }
+    expect(fuuton).toBeGreaterThan(0);
+    expect(gyokujo).toBeGreaterThan(0);
+    expect(blocked).toBeGreaterThan(0);
   });
 
   it('印：南は◎、北東・南西は◯、それ以外はなし', () => {
