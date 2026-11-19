@@ -10,7 +10,7 @@ import {
 } from "@yoten/meishiki";
 import { requireAdmin } from "@/lib/auth";
 import { japanNow } from "@/lib/birth";
-import { KimonBoard } from "./kimon-board";
+import { KimonBoard } from "@/components/kimon/kimon-board";
 
 export const metadata: Metadata = { title: "奇門遁甲" };
 

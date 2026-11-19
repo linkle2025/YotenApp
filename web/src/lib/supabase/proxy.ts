@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { supabasePublishableKey, supabaseUrl } from "./env";
 
 /** ログインが必要な画面（先頭一致） */
-const PROTECTED_PREFIXES = ["/home", "/me", "/readings", "/admin"];
+const PROTECTED_PREFIXES = ["/home", "/me", "/readings", "/kimon", "/admin"];
 
 /**
  * リクエストごとにログインの期限を延ばし（Cookie の更新）、

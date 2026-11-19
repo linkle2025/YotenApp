@@ -39,3 +39,4 @@ export {
   type KyokakuRule,
 } from './kimonData';
 export * from './insight';
+export * from './kimonKichi';

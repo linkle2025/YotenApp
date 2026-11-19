@@ -7,6 +7,7 @@ const LINKS = [
   { href: "/home", label: "ホーム", match: (p: string) => p === "/home" },
   { href: "/readings/new", label: "つくる", match: (p: string) => p === "/readings/new" },
   { href: "/readings", label: "記録", match: (p: string) => p.startsWith("/readings") && p !== "/readings/new" },
+  { href: "/kimon", label: "吉方位", match: (p: string) => p.startsWith("/kimon") },
   { href: "/me", label: "マイページ", match: (p: string) => p.startsWith("/me") },
 ];
 
