@@ -11,6 +11,7 @@ import { requireUser } from "@/lib/auth";
 import { getStems } from "@/lib/master";
 import { currentResult } from "@/lib/readings";
 import { createClient } from "@/lib/supabase/server";
+import { DailyAdvice } from "./daily-advice";
 
 export const metadata: Metadata = { title: "ホーム" };
 
@@ -152,6 +153,9 @@ async function HomeContent({ searchParams }: { searchParams: PageProps<"/home">[
           </>
         )}
       </section>
+
+      {/* 管理者だけのテスト機能。呼び出し側（daily-actions.ts）でも管理者かどうかを確かめている */}
+      {user.role === "admin" && <DailyAdvice canGenerate={Boolean(result)} />}
 
       <Link href="/readings/new" className={`btn w-full ${result ? "btn-primary" : "btn-secondary"}`}>
         <Plus size={20} aria-hidden strokeWidth={2.2} />

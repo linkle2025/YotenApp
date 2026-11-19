@@ -40,3 +40,4 @@ export {
 } from './kimonData';
 export * from './insight';
 export * from './kimonKichi';
+export * from './daily';
