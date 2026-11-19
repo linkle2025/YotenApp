@@ -28,24 +28,24 @@ export default async function TsuhenseiPage({ params }: PageProps<"/tsuhensei/[s
   if (!star) notFound();
   return (
     <main className="mx-auto w-full max-w-[720px] flex-1 px-4 py-8">
-      <Link href="/tsuhensei" className="text-sm text-accent underline-offset-2 hover:underline">
+      <Link href="/tsuhensei" className="link text-sm">
         ← 通変星の一覧
       </Link>
       <h1 className="mt-4 font-serif text-3xl font-bold">
         {star.name}
         <span className="ml-2 text-lg font-normal text-muted">（{star.reading}）</span>
       </h1>
-      <div className="mt-6">
+      <div className="card mt-6 p-5 sm:p-6">
         <StarSections star={star} />
       </div>
-      <nav aria-label="他の通変星" className="mt-10 border-t border-border pt-4">
+      <nav aria-label="他の通変星" className="mt-10">
         <h2 className="text-sm text-muted">他の通変星</h2>
         <ul className="mt-2 flex flex-wrap gap-2">
           {stars
             .filter((s) => s.slug !== star.slug)
             .map((s) => (
               <li key={s.slug}>
-                <Link href={`/tsuhensei/${s.slug}`} className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] border border-border bg-surface px-3 hover:bg-bg">
+                <Link href={`/tsuhensei/${s.slug}`} className="inline-flex min-h-11 items-center rounded-[12px] bg-surface shadow-[inset_0_0_0_1px_var(--border)] px-3 hover:bg-bg">
                   {s.name}
                 </Link>
               </li>

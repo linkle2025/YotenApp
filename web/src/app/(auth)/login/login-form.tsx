@@ -35,10 +35,10 @@ export function LoginForm() {
       <PasswordField label="パスワード" name="password" autoComplete="current-password" error={e.password} />
       <SubmitButton>ログイン</SubmitButton>
       <div className="flex flex-col items-center gap-2 text-sm">
-        <Link href="/forgot-password" className="text-accent underline">
+        <Link href="/forgot-password" className="link">
           パスワードを忘れた場合
         </Link>
-        <Link href="/signup" className="text-accent underline">
+        <Link href="/signup" className="link">
           会員登録はこちら
         </Link>
       </div>

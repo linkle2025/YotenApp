@@ -43,13 +43,13 @@ export function FiveElements({ result }: { result: MeishikiResult }) {
         <title id="gogyo-title">{`五行バランスの図。${order
           .map((e) => `${ELEMENT_INFO[e].label} ${formatScore(result.fiveElements[e])}点`)
           .join("、")}`}</title>
-        {[0.25, 0.5, 0.75, 1].map((s) => (
-          <polygon key={s} points={polygon(() => radius * s)} fill="none" stroke="var(--border)" strokeWidth="1" />
+        {[1, 0.75, 0.5, 0.25].map((s) => (
+          <polygon key={s} points={polygon(() => radius * s)} fill={s === 1 ? "var(--bg)" : "none"} stroke="var(--border)" strokeWidth="1" />
         ))}
         <polygon
           points={polygon((i) => (radius * result.fiveElements[order[i]]) / max)}
           fill="var(--primary)"
-          fillOpacity="0.18"
+          fillOpacity="0.14"
           stroke="var(--primary)"
           strokeWidth="2"
         />
@@ -68,55 +68,63 @@ export function FiveElements({ result }: { result: MeishikiResult }) {
         })}
       </svg>
 
-      <table className="w-full border-collapse text-sm">
-        <caption className="sr-only">五行の点数</caption>
-        <thead>
-          <tr className="text-xs text-muted">
-            <th scope="col" className="py-1 text-left font-normal">五行</th>
-            <th scope="col" className="py-1 text-left font-normal">日干から見て</th>
-            <th scope="col" className="py-1 text-right font-normal">点数</th>
-            <th scope="col" className="py-1 pl-3 text-left font-normal">該当する干支</th>
-          </tr>
-        </thead>
-        <tbody>
-          {order.map((e) => (
-            <tr key={e} className="border-t border-border">
-              <td className="py-1.5">
-                <span className={`inline-flex size-7 items-center justify-center rounded-full font-bold ${ELEMENT_INFO[e].tint} ${ELEMENT_INFO[e].text}`}>
-                  {ELEMENT_INFO[e].label}
-                </span>
-              </td>
-              <td className="py-1.5">{groupOf.get(e)}</td>
-              <td className="py-1.5 text-right tabular-nums">{formatScore(result.fiveElements[e])}</td>
-              <td className="py-1.5 pl-3 font-serif">{chars.get(e)!.join(" ") || <span className="text-muted">—</span>}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ul className="space-y-3" aria-label="五行の点数">
+        {order.map((e) => {
+          const score = result.fiveElements[e];
+          return (
+            <li key={e} className="grid grid-cols-[32px_3rem_1fr_2.5rem] items-center gap-x-3 gap-y-0.5">
+              <span
+                className={`row-span-2 flex size-8 items-center justify-center rounded-[10px] font-bold ${ELEMENT_INFO[e].tint} ${ELEMENT_INFO[e].text}`}
+              >
+                {ELEMENT_INFO[e].label}
+              </span>
+              <span className="text-xs text-muted">{groupOf.get(e)}</span>
+              <span className="block h-2.5 overflow-hidden rounded-full bg-subtle" aria-hidden>
+                <span
+                  className="block h-full rounded-full"
+                  style={{ width: `${Math.min(100, (score / max) * 100)}%`, background: ELEMENT_INFO[e].stroke }}
+                />
+              </span>
+              <span className="text-right font-bold tabular-nums">
+                {formatScore(score)}
+                <span className="sr-only">点</span>
+              </span>
+              <span className="col-span-3 col-start-2 font-serif text-sm text-muted">
+                <span className="sr-only">該当する干支：</span>
+                {chars.get(e)!.join(" ") || "—"}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
 
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 rounded-[var(--radius-sm)] bg-bg p-3 text-sm">
-        <dt className="font-bold">身旺・身弱</dt>
-        <dd>
-          <span className="font-bold">{result.strength.label}</span>
-          <span className="block text-muted">
-            比劫＋印 {formatScore(own)} ／ 食傷＋財＋官 {formatScore(other)}
-          </span>
-        </dd>
-        <dt className="font-bold">格局</dt>
-        <dd>{result.kakukyoku || <span className="text-muted">格なし</span>}</dd>
-        <dt className="font-bold">干合</dt>
-        <dd>
-          {result.kangou.length ? (
-            <ul>
-              {result.kangou.map((k) => (
-                <li key={k.pillars.join("-")}>{k.label}</li>
-              ))}
-            </ul>
-          ) : (
-            <span className="text-muted">なし</span>
-          )}
-        </dd>
+      <dl className="grid grid-cols-3 gap-2 text-sm">
+        <div className="well px-3 py-2.5">
+          <dt className="text-xs text-muted">身旺・身弱</dt>
+          <dd className="font-bold">{result.strength.label}</dd>
+        </div>
+        <div className="well px-3 py-2.5">
+          <dt className="text-xs text-muted">格局</dt>
+          <dd className="font-bold">{result.kakukyoku || <span className="text-muted">格なし</span>}</dd>
+        </div>
+        <div className="well px-3 py-2.5">
+          <dt className="text-xs text-muted">干合</dt>
+          <dd className="font-bold">
+            {result.kangou.length ? (
+              <ul>
+                {result.kangou.map((k) => (
+                  <li key={k.pillars.join("-")}>{k.label}</li>
+                ))}
+              </ul>
+            ) : (
+              <span className="text-muted">なし</span>
+            )}
+          </dd>
+        </div>
       </dl>
+      <p className="text-xs text-muted">
+        比劫＋印 {formatScore(own)} ／ 食傷＋財＋官 {formatScore(other)}
+      </p>
     </div>
   );
 }

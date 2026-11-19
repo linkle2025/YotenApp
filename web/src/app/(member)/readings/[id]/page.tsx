@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { calculateSkillSheet, getPrefecture } from "@yoten/meishiki";
 import { Notice } from "@/components/notice";
+import { ELEMENT_INFO, stemElement } from "@/components/reading/elements";
 import { FiveElements } from "@/components/reading/five-elements";
 import { PillarTable } from "@/components/reading/pillar-table";
 import { ExplainProvider, ExplainTrigger } from "@/components/reading/explain-panel";
@@ -87,81 +89,118 @@ async function ReadingContent({
     ? result.correction.longitudeMinutes + result.correction.equationOfTimeMinutes
     : null;
 
-  const sectionTitle = "font-serif text-xl font-bold";
-  const card = "rounded-[var(--radius-md)] border border-border bg-surface p-4 shadow-sm sm:p-5";
+  const sectionTitle = "text-lg font-bold";
+  const card = "card p-5 sm:p-6";
+  const element = stemElement(result.dayStem);
 
   return (
     <ExplainProvider stems={stems} stars={stars}>
-    <div className="space-y-5">
+    <div className="space-y-4">
       {typeof notice === "string" && NOTICES[notice] && <Notice>{NOTICES[notice]}</Notice>}
 
-      {/* 見出し（F-04-1） */}
-      <header className="space-y-3">
-        <Link href="/readings" className="text-sm text-accent underline-offset-2 hover:underline print:hidden">
-          ← 記録
-        </Link>
-        <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
-          <h1 className="font-serif text-2xl font-bold">
-            {title}
-            {reading.is_self && <span className="ml-2 align-middle text-sm font-normal text-muted">（あなた）</span>}
-          </h1>
-        </div>
-        <p className="flex flex-wrap items-center gap-x-2">
-          {stem && <Image src={stemImage(stem.slug)} alt="" width={64} height={64} className="size-16" priority />}
-          <ExplainTrigger kind="stem" name={result.dayStem}>
-            <span className="font-serif text-4xl font-bold">{result.dayStem}</span>
-          </ExplainTrigger>
-          {stem && (
-            <span className="text-muted">
-              （{stem.reading}）・{stem.element_type}
-            </span>
-          )}
-          <span className="ml-1">
-            {result.strength.label}
-            {result.kakukyoku && `・${result.kakukyoku}`}
+      <Link href="/readings" className="-ml-2 inline-flex min-h-11 items-center gap-0.5 rounded-full pr-3 pl-1 font-medium hover:bg-subtle print:hidden">
+        <ChevronLeft size={20} aria-hidden />
+        記録
+      </Link>
+
+      {/* 見出し（F-04-1）：日干を主役にする */}
+      <header className={`${card} space-y-4`}>
+        <div className="flex items-center gap-4">
+          <span
+            aria-hidden
+            className={`flex size-20 shrink-0 items-center justify-center rounded-[22px] sm:size-24 ${ELEMENT_INFO[element].tint}`}
+          >
+            {stem ? (
+              <Image src={stemImage(stem.slug)} alt="" width={64} height={64} className="size-14 sm:size-16" priority />
+            ) : (
+              <span className={`font-serif text-4xl font-bold ${ELEMENT_INFO[element].text}`}>{result.dayStem}</span>
+            )}
           </span>
-        </p>
-        <p className="text-sm text-muted">
-          {y}年{m}月{d}日 {time} {place} {gender}
-          {correction !== null && (
-            <span className="block text-xs">
-              出生地と季節による時刻の補正：{correction >= 0 ? "+" : ""}
-              {correction}分
-            </span>
-          )}
-        </p>
+          <div className="min-w-0 space-y-1">
+            <h1 className="text-[22px] leading-snug font-bold tracking-tight sm:text-2xl">
+              {title}
+              {reading.is_self && <span className="tag ml-2 align-middle">あなた</span>}
+            </h1>
+            <p className="flex flex-wrap items-baseline gap-x-2">
+              <ExplainTrigger kind="stem" name={result.dayStem}>
+                <span className={`font-serif text-3xl leading-none font-bold ${ELEMENT_INFO[element].text}`}>{result.dayStem}</span>
+              </ExplainTrigger>
+              {stem && (
+                <span className="text-sm text-muted">
+                  {stem.reading}・{stem.element_type}
+                </span>
+              )}
+            </p>
+            <p className="flex flex-wrap gap-1.5">
+              <span className="tag bg-accent text-on-primary">{result.strength.label}</span>
+              {result.kakukyoku && <span className="tag">{result.kakukyoku}</span>}
+            </p>
+          </div>
+        </div>
+        <dl className="well grid grid-cols-3 gap-2 p-3 text-sm">
+          <div>
+            <dt className="text-xs text-muted">生年月日</dt>
+            <dd className="font-bold">
+              {y}年{m}月{d}日
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted">時刻・場所</dt>
+            <dd className="font-bold">
+              {time} {place}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted">性別・年齢</dt>
+            <dd className="font-bold">
+              {gender} {Math.max(0, age)}歳
+            </dd>
+          </div>
+        </dl>
+        {correction !== null && (
+          <p className="text-xs text-muted">
+            出生地と季節による時刻の補正：{correction >= 0 ? "+" : ""}
+            {correction}分
+          </p>
+        )}
         <ReadingActions readingId={reading.id} isFavorite={reading.is_favorite} isSelf={reading.is_self} title={title} />
       </header>
 
       {/* 区切りへ移動するタブ（内容は1ページに全部並べる） */}
       <nav
         aria-label="鑑定表の区切り"
-        className="sticky top-0 z-10 -mx-4 flex gap-1 overflow-x-auto border-b border-border bg-bg/95 px-4 py-2 backdrop-blur lg:hidden print:hidden"
+        className="sticky top-14 z-10 -mx-4 bg-bg/90 px-4 py-2 backdrop-blur lg:hidden print:hidden"
       >
-        {[
-          { href: "#skill", label: "スキル表" },
-          { href: "#meishiki", label: "命式" },
-          { href: "#gogyo", label: "五行" },
-          { href: "#taiun", label: "大運" },
-        ].map((t) => (
-          <a key={t.href} href={t.href} className="rounded-full border border-border bg-surface px-4 py-1.5 text-sm whitespace-nowrap">
-            {t.label}
-          </a>
-        ))}
+        <div className="flex gap-1 rounded-full bg-subtle p-1">
+          {[
+            { href: "#skill", label: "スキル" },
+            { href: "#meishiki", label: "命式" },
+            { href: "#gogyo", label: "五行" },
+            { href: "#taiun", label: "大運" },
+          ].map((t) => (
+            <a
+              key={t.href}
+              href={t.href}
+              className="flex min-h-9 flex-1 items-center justify-center rounded-full text-sm font-bold text-muted transition-colors hover:bg-surface hover:text-text"
+            >
+              {t.label}
+            </a>
+          ))}
+        </div>
       </nav>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
         {/* 右（パソコン）／上（スマートフォン）：結果と説明 */}
-        <div className="space-y-5 lg:order-2">
-          <section className={card} aria-labelledby="summary-title">
-            <h2 id="summary-title" className={sectionTitle}>
+        <div className="space-y-4 lg:order-2">
+          <section className="rounded-[var(--radius-xl)] bg-text p-5 text-on-ink sm:p-6 print:bg-surface print:text-text" aria-labelledby="summary-title">
+            <h2 id="summary-title" className="text-sm font-bold tracking-widest text-on-ink-accent print:text-primary">
               ひとことで
             </h2>
             <div className="mt-3">
               <InsightPanel readingId={reading.id} available={available} insight={insight} remaining={remaining} />
             </div>
           </section>
-          <section id="skill" className={`${card} scroll-mt-16`} aria-labelledby="skill-title">
+          <section id="skill" className={`${card} scroll-mt-32 lg:scroll-mt-20`} aria-labelledby="skill-title">
             <h2 id="skill-title" className={sectionTitle}>
               鑑定スキル表
             </h2>
@@ -172,8 +211,8 @@ async function ReadingContent({
         </div>
 
         {/* 左（パソコン、上下に動かしても見える）／下（スマートフォン）：根拠 */}
-        <div className="space-y-5 lg:sticky lg:top-4 lg:order-1">
-          <section id="meishiki" className={`${card} scroll-mt-16`} aria-labelledby="meishiki-title">
+        <div className="space-y-4 lg:sticky lg:top-[72px] lg:order-1">
+          <section id="meishiki" className={`${card} scroll-mt-32 lg:scroll-mt-20`} aria-labelledby="meishiki-title">
             <h2 id="meishiki-title" className={sectionTitle}>
               命式
             </h2>
@@ -181,7 +220,7 @@ async function ReadingContent({
               <PillarTable result={result} />
             </div>
           </section>
-          <section id="gogyo" className={`${card} scroll-mt-16`} aria-labelledby="gogyo-section-title">
+          <section id="gogyo" className={`${card} scroll-mt-32 lg:scroll-mt-20`} aria-labelledby="gogyo-section-title">
             <h2 id="gogyo-section-title" className={sectionTitle}>
               五行バランス
             </h2>
@@ -189,7 +228,7 @@ async function ReadingContent({
               <FiveElements result={result} />
             </div>
           </section>
-          <section id="taiun" className={`${card} scroll-mt-16`} aria-labelledby="taiun-title">
+          <section id="taiun" className={`${card} scroll-mt-32 lg:scroll-mt-20`} aria-labelledby="taiun-title">
             <h2 id="taiun-title" className={sectionTitle}>
               大運
             </h2>
@@ -200,7 +239,7 @@ async function ReadingContent({
         </div>
       </div>
 
-      <p className="text-xs text-muted">
+      <p className="text-center text-xs text-muted">
         計算ロジック {result.calcVersion}・スキル表 {sheet.version}・解釈ルール {sheet.rulesVersion}
       </p>
     </div>
@@ -211,11 +250,11 @@ async function ReadingContent({
 function ReadingSkeleton() {
   return (
     <div className="space-y-5" aria-hidden>
-      <div className="h-6 w-24 animate-pulse rounded bg-border" />
-      <div className="h-10 w-64 animate-pulse rounded bg-border" />
-      <div className="grid gap-5 lg:grid-cols-[5fr_7fr]">
-        <div className="h-96 animate-pulse rounded-[var(--radius-md)] bg-surface" />
-        <div className="h-96 animate-pulse rounded-[var(--radius-md)] bg-surface" />
+      <div className="h-6 w-24 animate-pulse rounded bg-subtle" />
+      <div className="h-48 animate-pulse rounded-[var(--radius-xl)] bg-surface" />
+      <div className="grid gap-4 lg:grid-cols-[5fr_7fr]">
+        <div className="h-96 animate-pulse rounded-[var(--radius-xl)] bg-surface" />
+        <div className="h-96 animate-pulse rounded-[var(--radius-xl)] bg-surface" />
       </div>
     </div>
   );

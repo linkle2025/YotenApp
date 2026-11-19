@@ -19,7 +19,7 @@ export function DeleteAccountForm() {
       />
       <SubmitButton variant="danger">退会する</SubmitButton>
       <p className="text-center text-sm">
-        <Link href="/me" className="text-accent underline">
+        <Link href="/me" className="link">
           やめて戻る
         </Link>
       </p>

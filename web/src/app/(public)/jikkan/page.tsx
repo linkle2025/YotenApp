@@ -19,7 +19,7 @@ export default async function JikkanListPage() {
   }));
   return (
     <main className="mx-auto w-full max-w-[720px] flex-1 px-4 py-8">
-      <h1 className="font-serif text-2xl font-bold">十干の解説</h1>
+      <h1 className="text-[26px] font-bold tracking-tight">十干の解説</h1>
       <p className="mt-2 text-muted">
         十干は、命式の中心となる「日干」をはじめ、四柱の天干に表れる10の性質です。五行（木・火・土・金・水）がそれぞれ陽と陰に分かれています。
       </p>
@@ -34,7 +34,7 @@ export default async function JikkanListPage() {
                 <li key={s.slug}>
                   <Link
                     href={`/jikkan/${s.slug}`}
-                    className="flex items-center gap-3 rounded-[var(--radius-md)] border border-border bg-surface p-3 hover:bg-bg"
+                    className="flex items-center gap-3 card p-3 hover:bg-bg"
                   >
                     <Image src={stemImage(s.slug)} alt="" width={56} height={56} className="size-14" />
                     <span>
@@ -50,7 +50,7 @@ export default async function JikkanListPage() {
         ))}
       </div>
       <p className="mt-8">
-        <Link href="/tsuhensei" className="text-accent underline">
+        <Link href="/tsuhensei" className="link">
           通変星の解説へ
         </Link>
       </p>

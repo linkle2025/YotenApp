@@ -58,7 +58,7 @@ export function SignUpForm() {
       <SubmitButton>登録する</SubmitButton>
       <p className="text-center text-sm">
         すでに会員の方は{" "}
-        <Link href="/login" className="text-accent underline">
+        <Link href="/login" className="link">
           ログイン
         </Link>
       </p>

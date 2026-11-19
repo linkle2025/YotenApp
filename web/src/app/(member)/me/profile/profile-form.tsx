@@ -39,7 +39,7 @@ export function ProfileForm({
       <SubmitButton pendingLabel="計算しています…">保存して命式をつくる</SubmitButton>
       {allowSkip && (
         <p className="text-center text-sm">
-          <Link href="/home" className="text-accent underline">
+          <Link href="/home" className="link">
             あとで入力する
           </Link>
         </p>

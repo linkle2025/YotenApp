@@ -11,14 +11,14 @@ export default async function TsuhenseiListPage() {
   const stars = await getStars();
   return (
     <main className="mx-auto w-full max-w-[720px] flex-1 px-4 py-8">
-      <h1 className="font-serif text-2xl font-bold">通変星の解説</h1>
+      <h1 className="text-[26px] font-bold tracking-tight">通変星の解説</h1>
       <p className="mt-2 text-muted">
         通変星は、日干から見たほかの干との関係を、10の性質で表したものです。命式の表の天干・蔵干の下に表示しています。
       </p>
       <ul className="mt-6 grid gap-3 sm:grid-cols-2">
         {stars.map((s) => (
           <li key={s.slug}>
-            <Link href={`/tsuhensei/${s.slug}`} className="block rounded-[var(--radius-md)] border border-border bg-surface p-3 hover:bg-bg">
+            <Link href={`/tsuhensei/${s.slug}`} className="block card p-3 hover:bg-bg">
               <span className="font-serif text-xl font-bold">{s.name}</span>
               <span className="ml-2 text-sm text-muted">{s.reading}</span>
             </Link>
@@ -26,7 +26,7 @@ export default async function TsuhenseiListPage() {
         ))}
       </ul>
       <p className="mt-8">
-        <Link href="/jikkan" className="text-accent underline">
+        <Link href="/jikkan" className="link">
           十干の解説へ
         </Link>
       </p>

@@ -22,7 +22,7 @@ export function ChangePasswordForm() {
       <PasswordField label="新しいパスワード（確認）" name="confirm" autoComplete="new-password" error={e.confirm} />
       <SubmitButton>変更する</SubmitButton>
       <p className="text-center text-sm">
-        <Link href="/forgot-password" className="text-accent underline">
+        <Link href="/forgot-password" className="link">
           今のパスワードを忘れた場合
         </Link>
       </p>

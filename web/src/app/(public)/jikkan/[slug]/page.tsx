@@ -35,11 +35,11 @@ export default async function JikkanPage({ params }: PageProps<"/jikkan/[slug]">
 
   return (
     <main className="mx-auto w-full max-w-[720px] flex-1 px-4 py-8">
-      <Link href="/jikkan" className="text-sm text-accent underline-offset-2 hover:underline">
+      <Link href="/jikkan" className="link text-sm">
         ← 十干の一覧
       </Link>
       <div className="mt-4 flex items-center gap-4">
-        <Image src={stemImage(stem.slug)} alt="" width={96} height={96} className="size-24" priority />
+        <span aria-hidden className={`flex size-24 shrink-0 items-center justify-center rounded-[24px] ${ELEMENT_INFO[element].tint}`}><Image src={stemImage(stem.slug)} alt="" width={96} height={96} className="size-18" priority /></span>
         <div>
           <h1 className="font-serif text-3xl font-bold">
             {stem.name}
@@ -50,17 +50,17 @@ export default async function JikkanPage({ params }: PageProps<"/jikkan/[slug]">
           </p>
         </div>
       </div>
-      <div className="mt-6">
+      <div className="card mt-6 p-5 sm:p-6">
         <StemSections stem={stem} />
       </div>
-      <nav aria-label="他の十干" className="mt-10 border-t border-border pt-4">
+      <nav aria-label="他の十干" className="mt-10">
         <h2 className="text-sm text-muted">他の十干</h2>
         <ul className="mt-2 flex flex-wrap gap-2">
           {stems
             .filter((s) => s.slug !== stem.slug)
             .map((s) => (
               <li key={s.slug}>
-                <Link href={`/jikkan/${s.slug}`} className="inline-flex size-11 items-center justify-center rounded-[var(--radius-sm)] border border-border bg-surface font-serif text-lg hover:bg-bg">
+                <Link href={`/jikkan/${s.slug}`} className="inline-flex size-11 items-center justify-center rounded-[12px] bg-surface shadow-[inset_0_0_0_1px_var(--border)] font-serif text-lg hover:bg-bg">
                   {s.name}
                 </Link>
               </li>

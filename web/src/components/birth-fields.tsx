@@ -207,19 +207,22 @@ export function BirthFields({
 
       <fieldset>
         <legend className="text-sm font-bold">性別</legend>
-        <div className="mt-2 flex gap-6">
+        <div className="mt-1.5 grid grid-cols-2 gap-1 rounded-[14px] bg-subtle p-1">
           {[
             { value: "female", label: "女性" },
             { value: "male", label: "男性" },
           ].map((g) => (
-            <label key={g.value} className="flex items-center gap-2">
+            <label
+              key={g.value}
+              className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[11px] text-muted transition-colors has-checked:bg-surface has-checked:font-bold has-checked:text-text has-checked:shadow-[0_1px_3px_rgba(31,27,22,.12)] has-focus-visible:outline-2 has-focus-visible:outline-primary"
+            >
               <input
                 type="radio"
                 name="gender"
                 value={g.value}
                 defaultChecked={defaults.gender === g.value}
                 required
-                className="size-5 accent-[var(--primary)]"
+                className="sr-only"
               />
               <span>{g.label}</span>
             </label>

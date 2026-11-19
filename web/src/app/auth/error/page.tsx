@@ -31,7 +31,7 @@ async function Reason({ searchParams }: { searchParams: PageProps<"/auth/error">
       {isReset ? (
         <Link
           href="/forgot-password"
-          className="flex min-h-12 items-center justify-center rounded-[var(--radius-md)] bg-primary font-bold text-on-primary hover:bg-primary-hover"
+          className="btn btn-primary w-full"
         >
           もう一度申し込む
         </Link>
@@ -42,7 +42,7 @@ async function Reason({ searchParams }: { searchParams: PageProps<"/auth/error">
           </p>
           <Link
             href="/login"
-            className="flex min-h-12 items-center justify-center rounded-[var(--radius-md)] bg-primary font-bold text-on-primary hover:bg-primary-hover"
+            className="btn btn-primary w-full"
           >
             ログインする
           </Link>

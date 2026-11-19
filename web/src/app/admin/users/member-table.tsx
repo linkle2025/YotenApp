@@ -67,7 +67,7 @@ export function MemberTable({ members, meId }: { members: Member[]; meId: string
     </button>
   );
 
-  const select = "min-h-10 rounded-[var(--radius-sm)] border border-border bg-surface px-2";
+  const select = "min-h-10 rounded-[12px] bg-surface shadow-[inset_0_0_0_1px_var(--border)] px-2";
 
   return (
     <div className="space-y-3">
@@ -86,7 +86,7 @@ export function MemberTable({ members, meId }: { members: Member[]; meId: string
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="名前・メールで検索"
-          className="min-h-10 min-w-56 flex-1 rounded-[var(--radius-sm)] border border-border bg-surface px-3"
+          className="min-h-10 min-w-56 flex-1 rounded-[12px] bg-surface shadow-[inset_0_0_0_1px_var(--border)] px-3"
         />
         <label className="flex items-center gap-1 text-sm">
           ロール
@@ -114,7 +114,7 @@ export function MemberTable({ members, meId }: { members: Member[]; meId: string
       <p className="text-sm text-muted">{rows.length}人</p>
 
       {/* パソコン：表 */}
-      <div className="hidden overflow-x-auto rounded-[var(--radius-md)] border border-border bg-surface md:block">
+      <div className="hidden overflow-x-auto card md:block">
         <table className="w-full text-sm">
           <thead className="bg-bg text-left text-xs text-muted">
             <tr>
@@ -144,7 +144,7 @@ export function MemberTable({ members, meId }: { members: Member[]; meId: string
                 <td className="px-3 py-2 whitespace-nowrap">{m.lastSignInAt ? formatDateTime(m.lastSignInAt) : "—"}</td>
                 <td className="px-3 py-2 text-right tabular-nums">{m.readingCount}</td>
                 <td className="px-3 py-2 text-right">
-                  <button type="button" onClick={() => open(m)} className="rounded-[var(--radius-sm)] border border-border px-3 py-1 hover:bg-bg">
+                  <button type="button" onClick={() => open(m)} className="btn-secondary rounded-[10px] px-3 py-1 hover:bg-bg">
                     編集
                   </button>
                 </td>
@@ -157,7 +157,7 @@ export function MemberTable({ members, meId }: { members: Member[]; meId: string
       {/* スマートフォン：カード */}
       <ul className="space-y-2 md:hidden">
         {rows.map((m) => (
-          <li key={m.id} className="rounded-[var(--radius-md)] border border-border bg-surface p-3">
+          <li key={m.id} className="card p-3">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="font-bold">
@@ -166,7 +166,7 @@ export function MemberTable({ members, meId }: { members: Member[]; meId: string
                 </p>
                 <p className="text-sm break-all text-muted">{m.email}</p>
               </div>
-              <button type="button" onClick={() => open(m)} className="shrink-0 rounded-[var(--radius-sm)] border border-border px-3 py-1 text-sm">
+              <button type="button" onClick={() => open(m)} className="shrink-0 btn-secondary rounded-[10px] px-3 py-1 text-sm">
                 編集
               </button>
             </div>
@@ -244,7 +244,7 @@ function EditPanel({
           </h2>
           <p className="text-sm break-all text-muted">{member.email}</p>
         </div>
-        <button type="button" onClick={onClose} className="min-h-10 rounded-[var(--radius-sm)] border border-border px-3 text-sm" autoFocus>
+        <button type="button" onClick={onClose} className="min-h-10 btn-secondary rounded-[10px] px-3 text-sm" autoFocus>
           閉じる
         </button>
       </div>
@@ -262,7 +262,7 @@ function EditPanel({
           <select
             value={role}
             onChange={(e) => setRole(e.target.value as Member["role"])}
-            className="mt-1 block min-h-11 w-full rounded-[var(--radius-sm)] border border-border bg-surface px-2"
+            className="mt-1 block min-h-11 w-full rounded-[12px] bg-surface shadow-[inset_0_0_0_1px_var(--border)] px-2"
           >
             {Object.entries(ROLE_LABELS).map(([v, l]) => (
               <option key={v} value={v}>
@@ -294,7 +294,7 @@ function EditPanel({
           type="button"
           onClick={save}
           disabled={role === member.role && status === member.status}
-          className="min-h-11 w-full rounded-[var(--radius-md)] bg-primary font-bold text-on-primary hover:bg-primary-hover disabled:opacity-50"
+          className="btn btn-primary w-full"
         >
           {pending ? "保存しています…" : "変更を保存"}
         </button>
@@ -303,7 +303,7 @@ function EditPanel({
       {!isMe && (
         <div className="border-t border-border pt-4">
           {!confirmDelete ? (
-            <button type="button" onClick={() => setConfirmDelete(true)} className="text-sm text-danger underline">
+            <button type="button" onClick={() => setConfirmDelete(true)} className="text-sm font-bold text-danger">
               この会員を削除する
             </button>
           ) : (
@@ -323,7 +323,7 @@ function EditPanel({
                 >
                   {pending ? "削除しています…" : "削除する"}
                 </button>
-                <button type="button" onClick={() => setConfirmDelete(false)} className="min-h-10 rounded-[var(--radius-sm)] border border-border px-4 text-sm">
+                <button type="button" onClick={() => setConfirmDelete(false)} className="min-h-10 btn-secondary rounded-[10px] px-4 text-sm">
                   やめる
                 </button>
               </div>

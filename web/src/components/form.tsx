@@ -27,16 +27,13 @@ export function SubmitButton({
   pendingLabel?: string;
 }) {
   const { pending } = useFormStatus();
-  const color =
-    variant === "danger"
-      ? "bg-danger text-on-primary hover:opacity-90"
-      : "bg-primary text-on-primary hover:bg-primary-hover";
+  const color = variant === "danger" ? "btn-danger" : "btn-primary";
   return (
     <button
       type="submit"
       disabled={pending}
       aria-disabled={pending}
-      className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--radius-md)] px-4 font-bold transition disabled:cursor-wait disabled:opacity-70 ${color}`}
+      className={`btn w-full ${color}`}
     >
       {pending && (
         <span
@@ -104,7 +101,7 @@ export function PasswordField({ label, name, hint, error, autoComplete }: Omit<F
           onClick={() => setVisible((v) => !v)}
           aria-pressed={visible}
           aria-controls={id}
-          className="absolute inset-y-0 right-0 mt-1 px-3 text-sm text-accent underline-offset-2 hover:underline"
+          className="link absolute inset-y-0 right-0 mt-1 px-4 text-sm"
         >
           {visible ? "隠す" : "表示"}
         </button>
@@ -132,8 +129,8 @@ export function FieldFooter({ id, hint, error }: { id: string; hint?: ReactNode;
 }
 
 export function inputClass(invalid: boolean) {
-  return `mt-1 block min-h-12 w-full rounded-[var(--radius-sm)] border bg-surface px-3 text-base outline-none focus:ring-2 focus:ring-primary ${
-    invalid ? "border-danger" : "border-border"
+  return `mt-1.5 block min-h-12 w-full rounded-[12px] border-0 bg-surface px-3.5 text-base outline-none transition-shadow focus:shadow-[inset_0_0_0_2px_var(--primary),0_0_0_4px_rgba(180,68,31,.15)] ${
+    invalid ? "shadow-[inset_0_0_0_2px_var(--danger)]" : "shadow-[inset_0_0_0_1px_var(--border)]"
   }`;
 }
 
@@ -143,8 +140,8 @@ export function FormMessage({ state }: { state: FormState }) {
   return (
     <p
       role={state.ok ? "status" : "alert"}
-      className={`rounded-[var(--radius-sm)] border px-3 py-2 text-sm ${
-        state.ok ? "border-success text-success" : "border-danger text-danger"
+      className={`rounded-[12px] px-4 py-3 text-sm font-bold ${
+        state.ok ? "bg-success-tint text-success" : "bg-danger-tint text-danger"
       }`}
     >
       {state.message}

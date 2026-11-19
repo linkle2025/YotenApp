@@ -63,7 +63,7 @@ export function KimonBoard({ board, compact = false, showGuides = true }: { boar
       {!compact && (
         <div aria-live="polite">
           {bagua ? (
-            <div className="rounded-[var(--radius-md)] border border-border bg-surface p-3 text-sm">
+            <div className="card p-3 text-sm">
               <p className="font-bold">{bagua.title}</p>
               <p className="mt-1">
                 正象：{bagua.zhengxiang}　人物：{bagua.person}
@@ -89,7 +89,7 @@ export function KimonBoard({ board, compact = false, showGuides = true }: { boar
                   setGuideId(tag.id);
                   requestAnimationFrame(() => dialogRef.current?.showModal());
                 }}
-                className="rounded-full border border-border bg-surface px-3 py-1 hover:bg-bg"
+                className="chip"
               >
                 {tag.label}
               </button>
@@ -122,7 +122,7 @@ export function KimonBoard({ board, compact = false, showGuides = true }: { boar
                   <h2 id="guide-title" className="text-lg font-bold">
                     {KIMON_USAGE_GUIDES[guideId].title}
                   </h2>
-                  <button type="button" onClick={() => dialogRef.current?.close()} className="rounded-[var(--radius-sm)] border border-border px-3 py-1 text-sm" autoFocus>
+                  <button type="button" onClick={() => dialogRef.current?.close()} className="btn-secondary rounded-[10px] px-3 py-1 text-sm" autoFocus>
                     閉じる
                   </button>
                 </div>

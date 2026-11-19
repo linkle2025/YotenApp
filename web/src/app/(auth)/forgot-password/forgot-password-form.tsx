@@ -12,7 +12,7 @@ export function ForgotPasswordForm() {
       <div className="space-y-4">
         <FormMessage state={state} />
         <p className="text-sm text-muted">リンクは、申し込んだのと同じブラウザで開いてください。</p>
-        <Link href="/login" className="inline-block text-accent underline">
+        <Link href="/login" className="link inline-block">
           ログイン画面へ戻る
         </Link>
       </div>
@@ -33,7 +33,7 @@ export function ForgotPasswordForm() {
       />
       <SubmitButton>再設定のメールを送る</SubmitButton>
       <p className="text-center text-sm">
-        <Link href="/login" className="text-accent underline">
+        <Link href="/login" className="link">
           ログイン画面へ戻る
         </Link>
       </p>

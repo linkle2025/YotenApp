@@ -33,8 +33,8 @@ function Sections({ items }: { items: { title: string; body: string }[] }) {
         .filter((i) => i.body.trim())
         .map((i) => (
           <section key={i.title}>
-            <h2 className="border-l-4 border-primary pl-2 font-bold">{i.title}</h2>
-            <p className="mt-2 whitespace-pre-line">{i.body}</p>
+            <h2 className="text-sm font-bold tracking-wide text-primary">{i.title}</h2>
+            <p className="prose-ja mt-1.5 whitespace-pre-line">{i.body}</p>
           </section>
         ))}
     </div>

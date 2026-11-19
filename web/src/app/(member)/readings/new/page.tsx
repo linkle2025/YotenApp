@@ -13,9 +13,9 @@ const PREFECTURE_OPTIONS = PREFECTURES.map((p) => ({ code: p.code, name: p.name 
 export default function NewReadingPage() {
   return (
     <main className="mx-auto w-full max-w-[560px] flex-1 px-4 py-8">
-      <h1 className="font-serif text-2xl font-bold">命式をつくる</h1>
+      <h1 className="text-[26px] font-bold tracking-tight">命式をつくる</h1>
       <p className="mt-2 text-muted">家族・社員・相談者など、あなた以外の人の命式をつくって保存できます。</p>
-      <div className="mt-6 rounded-[var(--radius-md)] border border-border bg-surface p-5 shadow-sm">
+      <div className="mt-6 card p-5 sm:p-6">
         <Suspense fallback={<div className="h-[32rem] animate-pulse rounded bg-bg" aria-hidden />}>
           <FormLoader />
         </Suspense>

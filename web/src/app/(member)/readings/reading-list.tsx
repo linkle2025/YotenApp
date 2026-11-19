@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Star, Trash } from "lucide-react";
+import { StemTile } from "@/components/reading/stem-tile";
 import { useEffect, useRef, useState } from "react";
 import { deleteReadingInPlace, setFavorite } from "./actions";
 
@@ -91,7 +93,7 @@ export function ReadingList({ items }: { items: ReadingListItem[] }) {
   return (
     <>
       {error && (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm font-bold text-danger">
           {error}
         </p>
       )}
@@ -101,42 +103,38 @@ export function ReadingList({ items }: { items: ReadingListItem[] }) {
           .map((item) => {
             const fav = favorites.get(item.id);
             return (
-              <li key={item.id} className="relative flex items-center gap-3 rounded-[var(--radius-md)] border border-border bg-surface p-3 hover:bg-bg">
-                <span
-                  aria-hidden
-                  className="flex size-12 shrink-0 items-center justify-center rounded-full bg-bg font-serif text-2xl font-bold"
-                >
-                  {item.dayStem}
-                </span>
+              <li
+                key={item.id}
+                className="relative flex items-center gap-3 rounded-[18px] bg-surface py-3 pr-1 pl-4 shadow-[0_1px_2px_rgba(31,27,22,.04)] transition-shadow hover:shadow-[var(--shadow-card)]"
+              >
+                <StemTile stem={item.dayStem} />
                 <div className="min-w-0 flex-1">
-                  <Link href={`/readings/${item.id}`} className="font-bold after:absolute after:inset-0">
+                  <Link href={`/readings/${item.id}`} className="font-bold after:absolute after:inset-0 after:rounded-[18px]">
                     {title(item)}
-                    {item.isSelf && (
-                      <span className="ml-2 rounded-full bg-primary px-2 py-0.5 align-middle text-xs font-normal text-on-primary">あなた</span>
-                    )}
+                    {item.isSelf && <span className="tag ml-2 align-[2px] text-[11px] text-muted">あなた</span>}
                   </Link>
-                  <p className="truncate text-sm text-muted">
-                    日干 {item.dayStem}・{formatDate(item.birthDate)} {item.birthTime ?? "時刻不明"} {item.birthPlace}
+                  <p className="truncate text-xs text-muted">
+                    日干 {item.dayStem}・{formatDate(item.birthDate)} {item.birthTime ?? "時刻不明"}・{item.birthPlace}
                   </p>
                   <p className="text-xs text-muted">作成 {formatCreated(item.createdAt)}</p>
                 </div>
-                <div className="relative z-10 flex shrink-0 gap-1">
+                <div className="relative z-10 flex shrink-0">
                   <button
                     type="button"
                     onClick={() => toggleFavorite(item)}
                     aria-pressed={fav}
                     aria-label={fav ? `${title(item)}をお気に入りから外す` : `${title(item)}をお気に入りに追加`}
-                    className={`size-11 rounded-[var(--radius-sm)] text-xl hover:bg-surface ${fav ? "text-primary" : "text-muted"}`}
+                    className={`flex size-11 items-center justify-center rounded-full hover:bg-subtle ${fav ? "text-primary" : "text-muted"}`}
                   >
-                    {fav ? "★" : "☆"}
+                    <Star size={20} aria-hidden fill={fav ? "currentColor" : "none"} />
                   </button>
                   <button
                     type="button"
                     onClick={() => remove(item)}
                     aria-label={`${title(item)}を削除`}
-                    className="size-11 rounded-[var(--radius-sm)] text-sm text-danger hover:bg-surface"
+                    className="flex size-11 items-center justify-center rounded-full text-muted hover:bg-danger-tint hover:text-danger"
                   >
-                    削除
+                    <Trash size={18} aria-hidden />
                   </button>
                 </div>
               </li>
@@ -147,10 +145,10 @@ export function ReadingList({ items }: { items: ReadingListItem[] }) {
       {pending && (
         <div
           role="status"
-          className="fixed inset-x-4 bottom-20 z-30 mx-auto flex max-w-[560px] items-center justify-between gap-4 rounded-[var(--radius-md)] bg-text px-4 py-3 text-sm text-surface shadow-lg sm:bottom-6"
+          className="fixed inset-x-4 bottom-24 z-30 mx-auto flex max-w-[560px] items-center justify-between gap-4 rounded-[14px] bg-text py-2 pr-2 pl-4 text-sm text-on-ink shadow-[0_8px_24px_rgba(31,27,22,.25)] sm:bottom-6"
         >
           <span>「{title(pending)}」を削除しました</span>
-          <button type="button" onClick={undo} className="font-bold underline">
+          <button type="button" onClick={undo} className="min-h-10 shrink-0 rounded-[10px] px-3 font-bold text-on-ink-accent hover:bg-white/10">
             元に戻す
           </button>
         </div>

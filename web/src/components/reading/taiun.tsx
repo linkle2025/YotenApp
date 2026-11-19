@@ -20,15 +20,15 @@ export function TaiunView({ result, age }: { result: MeishikiResult; age: number
         {taiun.direction}・立運 {taiun.ritsuun}歳
         <span className="ml-2 text-xs text-muted">（年齢は満年齢。いまは {age}歳）</span>
       </p>
-      <ol className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2" aria-label="大運の一覧">
+      <ol className="-mx-5 flex snap-x gap-2 overflow-x-auto px-5 pb-2 sm:-mx-6 sm:px-6" aria-label="大運の一覧">
         {periods.map((p) => {
           const current = age >= p.ageStart && age <= p.ageEnd;
           return (
             <li
               key={p.ageStart}
               aria-current={current ? "true" : undefined}
-              className={`flex min-w-16 shrink-0 flex-col items-center gap-1 rounded-[var(--radius-sm)] border px-2 py-2 text-center ${
-                current ? "border-primary bg-primary/10" : "border-border bg-surface"
+              className={`flex w-[76px] shrink-0 snap-start flex-col items-center gap-1 rounded-[16px] px-2 py-2.5 text-center ${
+                current ? "bg-primary-tint shadow-[inset_0_0_0_2px_var(--primary)]" : "bg-bg"
               }`}
             >
               <span className="text-xs text-muted">
@@ -41,7 +41,7 @@ export function TaiunView({ result, age }: { result: MeishikiResult; age: number
               <ExplainTrigger kind="star" name={p.stemStar}>
                 <span className="text-xs">{p.stemStar}</span>
               </ExplainTrigger>
-              {current && <span className="text-xs font-bold text-primary">いま</span>}
+              {current && <span className="tag bg-primary px-2 text-[11px] text-on-primary">いま</span>}
             </li>
           );
         })}

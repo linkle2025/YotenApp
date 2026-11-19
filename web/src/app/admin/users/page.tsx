@@ -52,7 +52,7 @@ async function UsersContent() {
           ["鑑定記録", totals.readings],
           ["判定の要点", totals.insights],
         ].map(([label, value]) => (
-          <div key={label} className="rounded-[var(--radius-md)] border border-border bg-surface p-3">
+          <div key={label} className="card p-3">
             <dt className="text-xs text-muted">{label}</dt>
             <dd className="text-2xl font-bold tabular-nums">{value}</dd>
           </div>

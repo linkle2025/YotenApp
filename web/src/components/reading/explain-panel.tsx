@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { X } from "lucide-react";
 import { createContext, use, useEffect, useRef, useState, type ReactNode } from "react";
 import { StarSections, StemSections } from "@/components/explain-content";
 import type { StarInfo, StemInfo } from "@/lib/master";
@@ -37,13 +38,17 @@ export function ExplainProvider({ stems, stars, children }: { stems: StemInfo[];
           if (e.target === dialogRef.current) dialogRef.current.close();
         }}
         aria-labelledby="explain-title"
-        className="m-0 mt-auto max-h-[85vh] w-full max-w-none overflow-y-auto rounded-t-[var(--radius-lg)] bg-surface p-0 text-text shadow-xl backdrop:bg-black/40 sm:mt-0 sm:ml-auto sm:h-full sm:max-h-none sm:w-[440px] sm:rounded-none"
+        className="m-0 mt-auto max-h-[85vh] w-full max-w-none overflow-y-auto rounded-t-[var(--radius-xl)] bg-surface p-0 text-text shadow-[var(--shadow-panel)] backdrop:bg-black/40 backdrop:backdrop-blur-[2px] sm:mt-0 sm:ml-auto sm:h-full sm:max-h-none sm:w-[440px] sm:rounded-none"
       >
         {(stem || star) && (
-          <div className="p-5">
+          <div className="p-5 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
-                {stem && <Image src={`/img/stems/${stem.slug}.png`} alt="" width={64} height={64} className="size-16" />}
+                {stem && (
+                  <span aria-hidden className="flex size-16 shrink-0 items-center justify-center rounded-[18px] bg-bg">
+                    <Image src={`/img/stems/${stem.slug}.png`} alt="" width={64} height={64} className="size-12" />
+                  </span>
+                )}
                 <h2 id="explain-title" className="font-serif text-2xl font-bold">
                   {(stem ?? star)!.name}
                   <span className="ml-2 text-base font-normal text-muted">（{(stem ?? star)!.reading}）</span>
@@ -53,16 +58,17 @@ export function ExplainProvider({ stems, stars, children }: { stems: StemInfo[];
               <button
                 type="button"
                 onClick={() => dialogRef.current?.close()}
-                className="min-h-10 rounded-[var(--radius-sm)] border border-border px-3 text-sm"
+                aria-label="閉じる"
+                className="flex size-11 shrink-0 items-center justify-center rounded-full bg-subtle hover:bg-border"
                 autoFocus
               >
-                閉じる
+                <X size={20} aria-hidden />
               </button>
             </div>
             <div className="mt-5">{stem ? <StemSections stem={stem} /> : <StarSections star={star!} />}</div>
             <Link
               href={stem ? `/jikkan/${stem.slug}` : `/tsuhensei/${star!.slug}`}
-              className="mt-6 inline-block text-sm text-accent underline"
+              className="btn btn-secondary mt-6 w-full text-sm"
             >
               ページで開く
             </Link>
@@ -83,7 +89,7 @@ export function ExplainTrigger({ kind, name, children, className = "" }: Target 
       onClick={() => open({ kind, name })}
       aria-haspopup="dialog"
       aria-label={`${name}の解説を開く`}
-      className={`rounded-[var(--radius-sm)] underline decoration-dotted decoration-1 underline-offset-4 hover:bg-bg focus-visible:outline-2 focus-visible:outline-primary ${className}`}
+      className={`cursor-pointer rounded-[var(--radius-sm)] underline decoration-current/30 decoration-dotted decoration-1 underline-offset-4 transition-colors hover:bg-black/5 hover:decoration-current ${className}`}
     >
       {children}
     </button>

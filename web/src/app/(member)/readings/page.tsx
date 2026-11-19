@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Plus, Search, Star } from "lucide-react";
 import { Suspense } from "react";
 import { getPrefecture, type MeishikiResult } from "@yoten/meishiki";
 import { requireUser } from "@/lib/auth";
@@ -15,12 +16,10 @@ export default function ReadingsPage({ searchParams }: PageProps<"/readings">) {
   return (
     <main className="mx-auto w-full max-w-[720px] flex-1 px-4 py-8">
       <div className="flex items-center justify-between">
-        <h1 className="font-serif text-2xl font-bold">鑑定記録</h1>
-        <Link
-          href="/readings/new"
-          className="inline-flex min-h-10 items-center rounded-[var(--radius-md)] bg-primary px-4 text-sm font-bold text-on-primary hover:bg-primary-hover"
-        >
-          ＋ 命式をつくる
+        <h1 className="text-[26px] font-bold tracking-tight">鑑定記録</h1>
+        <Link href="/readings/new" className="btn btn-primary min-h-11 px-4 text-sm">
+          <Plus size={18} aria-hidden strokeWidth={2.2} />
+          命式をつくる
         </Link>
       </div>
       <Suspense fallback={<ListSkeleton />}>
@@ -74,8 +73,8 @@ async function ReadingsContent({ searchParams }: { searchParams: PageProps<"/rea
   };
 
   return (
-    <div className="mt-6 space-y-4">
-      <form action="/readings" className="flex gap-2" role="search">
+    <div className="mt-5 space-y-4">
+      <form action="/readings" className="relative" role="search">
         {fav && <input type="hidden" name="fav" value="1" />}
         {sort !== "new" && <input type="hidden" name="sort" value={sort} />}
         <label className="sr-only" htmlFor="q">
@@ -87,9 +86,10 @@ async function ReadingsContent({ searchParams }: { searchParams: PageProps<"/rea
           type="search"
           defaultValue={q}
           placeholder="氏名で検索"
-          className="min-h-11 flex-1 rounded-[var(--radius-sm)] border border-border bg-surface px-3"
+          className="min-h-12 w-full rounded-[14px] bg-surface pr-20 pl-11 shadow-[inset_0_0_0_1px_var(--border)] outline-none focus:shadow-[inset_0_0_0_2px_var(--primary),0_0_0_4px_rgba(180,68,31,.15)]"
         />
-        <button type="submit" className="min-h-11 rounded-[var(--radius-sm)] border border-border bg-surface px-4 hover:bg-bg">
+        <Search size={18} aria-hidden className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-muted" />
+        <button type="submit" className="link absolute inset-y-1 right-1 px-4 text-sm hover:bg-subtle">
           検索
         </button>
       </form>
@@ -99,7 +99,8 @@ async function ReadingsContent({ searchParams }: { searchParams: PageProps<"/rea
           すべて
         </Chip>
         <Chip href={linkTo({ fav: "1" })} active={fav}>
-          ★ お気に入り
+          <Star size={14} aria-hidden fill={fav ? "currentColor" : "none"} />
+          お気に入り
         </Chip>
         <span className="ml-auto flex items-center gap-1 text-muted">
           並び：
@@ -116,19 +117,19 @@ async function ReadingsContent({ searchParams }: { searchParams: PageProps<"/rea
       </div>
 
       {error ? (
-        <div role="alert" className="rounded-[var(--radius-md)] border border-danger bg-surface p-4">
+        <div role="alert" className="rounded-[var(--radius-xl)] bg-danger-tint p-5">
           <p className="font-bold">記録を読み込めませんでした。</p>
           <p className="mt-1 text-sm">通信の状態を確かめて、もう一度お試しください。</p>
-          <Link href={linkTo({})} className="mt-3 inline-block text-accent underline">
+          <Link href={linkTo({})} className="link mt-3 inline-block">
             再読み込み
           </Link>
         </div>
       ) : items.length === 0 ? (
-        <div className="rounded-[var(--radius-md)] border border-border bg-surface p-6 text-center">
+        <div className="card p-8 text-center">
           {filtered ? (
             <>
               <p>条件に合う記録はありません。</p>
-              <Link href="/readings" className="mt-3 inline-block text-accent underline">
+              <Link href="/readings" className="link mt-3 inline-block">
                 条件を外す
               </Link>
             </>
@@ -138,7 +139,7 @@ async function ReadingsContent({ searchParams }: { searchParams: PageProps<"/rea
               <p className="mt-1 text-sm text-muted">家族や社員の生年月日から、命式をつくってみましょう。</p>
               <Link
                 href="/readings/new"
-                className="mt-4 inline-flex min-h-12 items-center rounded-[var(--radius-md)] bg-primary px-6 font-bold text-on-primary hover:bg-primary-hover"
+                className="btn btn-primary mt-5 px-6"
               >
                 命式をつくる
               </Link>
@@ -153,7 +154,7 @@ async function ReadingsContent({ searchParams }: { searchParams: PageProps<"/rea
             <Link
               href={linkTo({ limit: String(limit + PAGE_SIZE) })}
               scroll={false}
-              className="flex min-h-12 items-center justify-center rounded-[var(--radius-md)] border border-border bg-surface hover:bg-bg"
+              className="btn btn-secondary w-full"
             >
               続きを表示（残り {count - items.length}件）
             </Link>
@@ -169,7 +170,7 @@ function Chip({ href, active, children }: { href: string; active: boolean; child
     <Link
       href={href}
       aria-current={active ? "true" : undefined}
-      className={`rounded-full border px-3 py-1 ${active ? "border-primary bg-primary text-on-primary" : "border-border bg-surface hover:bg-bg"}`}
+      className="chip"
     >
       {children}
     </Link>
@@ -180,7 +181,7 @@ function ListSkeleton() {
   return (
     <div className="mt-6 space-y-3" aria-hidden>
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="h-20 animate-pulse rounded-[var(--radius-md)] bg-surface" />
+        <div key={i} className="h-[76px] animate-pulse rounded-[18px] bg-surface" />
       ))}
     </div>
   );

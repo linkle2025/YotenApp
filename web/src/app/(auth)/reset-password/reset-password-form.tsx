@@ -12,7 +12,7 @@ export function ResetPasswordForm() {
     <form action={action} className="space-y-5" noValidate>
       <FormMessage state={state} />
       {state.message && (
-        <Link href="/forgot-password" className="inline-block text-sm text-accent underline">
+        <Link href="/forgot-password" className="link inline-block text-sm">
           もう一度申し込む
         </Link>
       )}

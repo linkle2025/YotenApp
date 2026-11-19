@@ -14,8 +14,24 @@
   --on-primary: #ffffff;
   --accent: #1e3a5f;
   --border: #e5ded3;
+  /* カードの中の面・区切り（枠線の代わりに背景の差で分ける） */
+  --subtle: #f1ece4;
+  --primary-tint: #fbe6dc;
+  /* 墨の面の上の文字 */
+  --on-ink: #fbf8f3;
+  --on-ink-muted: #b5ada2;
+  --on-ink-accent: #f0b49a;
   --danger: #b42318;
   --success: #18794e;
+
+  /* ランク（05_表層 5.3）：S／A／B／C／D の5段階 */
+  --rank-s: #8e2a12;
+  --rank-b: #f2c14e;
+  --rank-c: #d9d4cc;
+  --rank-d: #f1eee9;
+  /* 知らせの面 */
+  --success-tint: #e3f2ea;
+  --danger-tint: #fbe9e7;
 
   /* 五行：文字（濃）と背景（淡） */
   --wood: #2f6b2f;
@@ -40,8 +56,19 @@
   --color-on-primary: var(--on-primary);
   --color-accent: var(--accent);
   --color-border: var(--border);
+  --color-subtle: var(--subtle);
+  --color-primary-tint: var(--primary-tint);
+  --color-on-ink: var(--on-ink);
+  --color-on-ink-muted: var(--on-ink-muted);
+  --color-on-ink-accent: var(--on-ink-accent);
   --color-danger: var(--danger);
   --color-success: var(--success);
+  --color-rank-s: var(--rank-s);
+  --color-rank-b: var(--rank-b);
+  --color-rank-c: var(--rank-c);
+  --color-rank-d: var(--rank-d);
+  --color-success-tint: var(--success-tint);
+  --color-danger-tint: var(--danger-tint);
   --color-wood: var(--wood);
   --color-wood-tint: var(--wood-tint);
   --color-fire: var(--fire);
@@ -59,6 +86,11 @@
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 20px;
+  --radius-xl: 24px;
+
+  --shadow-card: 0 1px 2px rgba(31, 27, 22, 0.04), 0 8px 24px rgba(31, 27, 22, 0.06);
+  --shadow-panel: 0 8px 24px rgba(31, 27, 22, 0.12);
+  --shadow-cta: 0 6px 16px rgba(180, 68, 31, 0.25);
 }
 
 /* ダークモードは段階2で配色を詰める（05_表層.md 5.3） */
@@ -66,5 +98,131 @@
 body {
   background: var(--bg);
   color: var(--text);
+  line-height: 1.6;
+}
+
+/* 長い説明文だけ行間を広くとる（05_表層 5.4） */
+.prose-ja {
   line-height: 1.8;
+}
+
+/*
+ * 共通の部品（05_表層 5.6）。画面ではこの名前を使い、同じ見た目を何度も書かない。
+ */
+@utility card {
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* カードの中の面（枠線を使わず、生成り色で分ける） */
+@utility well {
+  border-radius: 14px;
+  background: var(--bg);
+}
+
+@utility btn {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 14px;
+  padding-inline: 20px;
+  font-weight: 700;
+  transition: background-color 150ms, box-shadow 150ms, opacity 150ms;
+  &:disabled {
+    cursor: wait;
+    opacity: 0.7;
+  }
+}
+
+/* 主ボタン：1画面に1つ */
+@utility btn-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-cta);
+  &:hover {
+    background: var(--primary-hover);
+  }
+}
+
+/* 副ボタン：白地に細い枠 */
+@utility btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--border);
+  &:hover {
+    background: var(--bg);
+  }
+}
+
+/* 危険なボタン：確認パネルの中でだけ使う */
+@utility btn-danger {
+  background: var(--danger);
+  color: var(--on-primary);
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+/* 文字だけのリンク・ボタン（下線を使わない） */
+@utility link {
+  font-weight: 700;
+  color: var(--primary);
+  border-radius: 6px;
+  &:hover {
+    color: var(--primary-hover);
+  }
+}
+
+/* 丸い切り替え（絞り込み・並び替え） */
+@utility chip {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding-inline: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--border);
+  &:hover {
+    background: var(--bg);
+  }
+  &[aria-current],
+  &[aria-pressed="true"] {
+    background: var(--text);
+    color: var(--surface);
+    box-shadow: none;
+    font-weight: 700;
+  }
+}
+
+/* 小さなラベル（身弱・格局・あなた など） */
+@utility tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 1px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--subtle);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

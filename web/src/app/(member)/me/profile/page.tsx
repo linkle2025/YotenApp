@@ -35,13 +35,13 @@ async function ProfileContent({ searchParams }: { searchParams: PageProps<"/me/p
 
   return (
     <>
-      <h1 className="font-serif text-2xl font-bold">{isWelcome ? "ようこそ、陽てん塾へ" : "プロフィール"}</h1>
+      <h1 className="text-[26px] font-bold tracking-tight">{isWelcome ? "ようこそ、陽てん塾へ" : "プロフィール"}</h1>
       <p className="mt-2 text-muted">
         {isWelcome
           ? "登録が完了しました。生年月日などを入れると、あなたの命式ができます。"
           : "生年月日などを変えると、あなたの命式を計算し直します。"}
       </p>
-      <div className="mt-6 rounded-[var(--radius-md)] border border-border bg-surface p-5 shadow-sm">
+      <div className="mt-6 card p-5 sm:p-6">
         <ProfileForm
           prefectures={PREFECTURE_OPTIONS}
           displayName={user.displayName}

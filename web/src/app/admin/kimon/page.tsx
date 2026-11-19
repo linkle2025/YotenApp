@@ -61,10 +61,10 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/admin/
     }
   }
 
-  const field = "mt-1 block min-h-11 w-full rounded-[var(--radius-sm)] border border-border bg-surface px-2";
+  const field = "mt-1 block min-h-11 w-full rounded-[12px] bg-surface shadow-[inset_0_0_0_1px_var(--border)] px-2";
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
-      <form action="/admin/kimon" className="space-y-4 rounded-[var(--radius-md)] border border-border bg-surface p-4">
+      <form action="/admin/kimon" className="space-y-4 card p-4">
         <fieldset>
           <legend className="text-sm font-bold">種類</legend>
           <div className="mt-1 flex flex-wrap gap-3">
@@ -141,7 +141,7 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/admin/
             </label>
           </div>
         </details>
-        <button type="submit" className="min-h-12 w-full rounded-[var(--radius-md)] bg-primary font-bold text-on-primary hover:bg-primary-hover">
+        <button type="submit" className="btn btn-primary w-full">
           作盤する
         </button>
       </form>
@@ -168,7 +168,7 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/admin/
             </h2>
             <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {daily.slots.map((slot) => (
-                <li key={slot.hour} className="rounded-[var(--radius-md)] border border-border bg-surface p-3">
+                <li key={slot.hour} className="card p-3">
                   <p className="mb-2 text-sm font-bold">
                     {slot.hour}時
                     {slot.ok && (

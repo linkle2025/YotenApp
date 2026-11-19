@@ -17,7 +17,7 @@ export default function SignUpSentPage({ searchParams }: PageProps<"/signup/sent
           <li>リンクは、登録したのと同じブラウザで開くと、そのままログインした状態になります。</li>
           <li>数分たっても届かないときは、迷惑メールのフォルダもご確認ください。</li>
         </ul>
-        <Link href="/login" className="inline-block text-accent underline">
+        <Link href="/login" className="link inline-block">
           ログイン画面へ
         </Link>
       </div>

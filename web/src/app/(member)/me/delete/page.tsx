@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "退会" };
 export default function DeleteAccountPage() {
   return (
     <main className="mx-auto w-full max-w-[560px] flex-1 px-4 py-10">
-      <h1 className="font-serif text-2xl font-bold">退会</h1>
+      <h1 className="text-[26px] font-bold tracking-tight">退会</h1>
       <Suspense fallback={<div className="mt-6 h-72 animate-pulse rounded-[var(--radius-md)] bg-surface" aria-hidden />}>
         <DeleteContent />
       </Suspense>
@@ -26,7 +26,7 @@ async function DeleteContent() {
   ]);
 
   return (
-    <div className="mt-6 rounded-[var(--radius-md)] border border-danger bg-surface p-5 shadow-sm">
+    <div className="mt-6 card p-5 ring-1 ring-danger sm:p-6">
       <p className="font-bold">退会すると、次のデータがすべて消え、元に戻せません。</p>
       <ul className="mt-3 list-disc space-y-1 pl-5">
         <li>プロフィール（表示名・生年月日など）</li>
