@@ -49,8 +49,14 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/kimon"
     days: 7,
     place,
   });
-  // 終わった時間は出さない
-  const days = result.days.map((d) => ({ ...d, slots: d.slots.filter((s) => toMinutes(s.end) > nowMinutes) }));
+  // 終わった時間は出さない。生門は◎・◯のつく方位だけを採用し（吉格はそのまま）、該当がない時間は出さない
+  const days = result.days.map((d) => ({
+    ...d,
+    slots: d.slots
+      .filter((s) => toMinutes(s.end) > nowMinutes)
+      .map((s) => ({ ...s, hits: s.hits.filter((h) => h.kind !== "生門" || h.mark !== null) }))
+      .filter((s) => s.hits.length > 0),
+  }));
   const total = days.reduce((n, d) => n + d.slots.length, 0);
 
   return (
@@ -72,7 +78,7 @@ async function KimonContent({ searchParams }: { searchParams: PageProps<"/kimon"
           <dd>風遁・玉女守門が三吉門（休・生・開）の方位で成立している時間</dd>
         </dl>
         <p className="text-xs text-muted">
-          吉方位：生門のある方位の点数が{KICHI_HOUI_MIN_SCORE}点以上の時間と、風遁・玉女守門が三吉門（休・生・開）の方位で成立している時間です。どちらも、その方位に凶格がなく、五不遇時でもないときに限ります。時刻は{result.placeName}
+          吉方位：生門のある方位の点数が{KICHI_HOUI_MIN_SCORE}点以上で、◎（南）または◯（北東・南西）の時間と、風遁・玉女守門が三吉門（休・生・開）の方位で成立している時間です。どちらも、その方位に凶格がなく、五不遇時でもないときに限ります。時刻は{result.placeName}
           の時計の時刻です（場所の経度と季節による時刻のずれを補正しています）。
         </p>
       </div>
